@@ -128,7 +128,7 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
               placeholder="Course Name"
               value={newCourse.name}
               onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
-              className="md:col-span-2 bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400"
+              className="md:col-span-2 bg-slate-50 border-slate-200 focus:bg-white focus:border-blue-400"
             />
             <Input
               type="number"
@@ -137,13 +137,13 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
               onChange={(e) => setNewCourse({ ...newCourse, credits: e.target.value })}
               min="1"
               max="10"
-              className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400"
+              className="bg-slate-50 border-slate-200 focus:bg-white focus:border-blue-400"
             />
             <Select
               value={newCourse.grade}
               onValueChange={(value) => setNewCourse({ ...newCourse, grade: value })}
             >
-              <SelectTrigger className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400">
+              <SelectTrigger className="bg-slate-50 border-slate-200 focus:bg-white focus:border-blue-400">
                 <SelectValue placeholder="Grade" />
               </SelectTrigger>
               <SelectContent className="bg-white">
