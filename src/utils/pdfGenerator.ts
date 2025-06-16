@@ -1,0 +1,194 @@
+
+export const generateGPAPDF = (gpaData: any) => {
+  // Create a simple HTML string for PDF generation
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>GPA Summary Report</title>
+      <style>
+        body {
+          font-family: 'Montserrat', Arial, sans-serif;
+          margin: 40px;
+          color: #1e293b;
+          line-height: 1.6;
+        }
+        .header {
+          text-align: center;
+          border-bottom: 3px solid #3b82f6;
+          padding-bottom: 20px;
+          margin-bottom: 30px;
+        }
+        .header h1 {
+          color: #3b82f6;
+          margin: 0;
+          font-size: 2.5em;
+          font-weight: 700;
+        }
+        .header p {
+          color: #64748b;
+          margin: 10px 0 0 0;
+          font-size: 1.1em;
+        }
+        .overall-stats {
+          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+          color: white;
+          padding: 25px;
+          border-radius: 12px;
+          margin-bottom: 30px;
+          text-align: center;
+        }
+        .overall-stats h2 {
+          margin: 0 0 15px 0;
+          font-size: 1.8em;
+        }
+        .stats-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+          margin-top: 15px;
+        }
+        .stat-item {
+          text-align: center;
+        }
+        .stat-value {
+          font-size: 2.5em;
+          font-weight: 700;
+          display: block;
+        }
+        .stat-label {
+          font-size: 1em;
+          opacity: 0.9;
+        }
+        .semester {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 25px;
+          margin-bottom: 25px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .semester h3 {
+          color: #3b82f6;
+          margin: 0 0 20px 0;
+          font-size: 1.5em;
+          font-weight: 600;
+          border-bottom: 2px solid #e2e8f0;
+          padding-bottom: 10px;
+        }
+        .semester-stats {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+          margin-bottom: 20px;
+          background: #f8fafc;
+          padding: 15px;
+          border-radius: 8px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 15px;
+        }
+        th, td {
+          padding: 12px;
+          text-align: left;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+          background: #f1f5f9;
+          font-weight: 600;
+          color: #475569;
+        }
+        .grade {
+          font-weight: 600;
+          padding: 4px 8px;
+          border-radius: 4px;
+          background: #e0f2fe;
+          color: #0891b2;
+        }
+        .footer {
+          text-align: center;
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 1px solid #e2e8f0;
+          color: #64748b;
+          font-size: 0.9em;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>GPA Summary Report</h1>
+        <p>Academic Performance Overview</p>
+        <p>Generated on ${new Date().toLocaleDateString()}</p>
+      </div>
+
+      <div class="overall-stats">
+        <h2>Overall Performance</h2>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-value">${gpaData.overallGPA.toFixed(2)}</span>
+            <span class="stat-label">Overall GPA</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">${gpaData.totalCredits}</span>
+            <span class="stat-label">Total Credits</span>
+          </div>
+        </div>
+      </div>
+
+      ${gpaData.semesters.map((semester: any) => `
+        <div class="semester">
+          <h3>${semester.name}</h3>
+          <div class="semester-stats">
+            <div class="stat-item">
+              <strong>Semester GPA: ${semester.gpa.toFixed(2)}</strong>
+            </div>
+            <div class="stat-item">
+              <strong>Credits: ${semester.totalCredits}</strong>
+            </div>
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Course Name</th>
+                <th>Credits</th>
+                <th>Grade</th>
+                <th>Grade Points</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${semester.courses.map((course: any) => `
+                <tr>
+                  <td>${course.name}</td>
+                  <td>${course.credits}</td>
+                  <td><span class="grade">${course.grade}</span></td>
+                  <td>${(course.credits * (gpaData.gradePoints[course.grade] || 0)).toFixed(1)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `).join('')}
+
+      <div class="footer">
+        <p>This report was generated by GPA Calculator</p>
+        <p>All calculations follow standard 4.0 GPA scale</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  // Create a blob and download
+  const blob = new Blob([htmlContent], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `GPA_Summary_${new Date().toISOString().split('T')[0]}.html`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
