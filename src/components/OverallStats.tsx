@@ -22,7 +22,7 @@ const OverallStats: React.FC<OverallStatsProps> = ({ gpaData }) => {
   const getGPAStatus = (gpa: number) => {
     if (gpa >= 3.7) return { text: 'Excellent', color: 'text-green-600' };
     if (gpa >= 3.3) return { text: 'Good', color: 'text-blue-600' };
-    if (gpa >= 3.0) return { text: 'Satisfactory', color: 'text-yellow-600' };
+    if (gpa >= 3.0) return { text: 'Satisfactory', color: 'text-purple-600' };
     if (gpa >= 2.0) return { text: 'Needs Improvement', color: 'text-orange-600' };
     return { text: 'Critical', color: 'text-red-600' };
   };
