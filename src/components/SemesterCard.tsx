@@ -59,9 +59,9 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
 
   return (
     <Card className="w-full animate-fade-in shadow-lg border-0 bg-white">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-xl font-semibold text-slate-800">
+          <CardTitle className="text-xl font-semibold text-blue-900">
             {semester.name}
           </CardTitle>
           <div className="flex items-center gap-4">
@@ -69,7 +69,7 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
               <div className="text-2xl font-bold text-blue-600">
                 {semester.gpa.toFixed(2)}
               </div>
-              <div className="text-sm text-slate-600">
+              <div className="text-sm text-blue-700">
                 {semester.totalCredits} credits
               </div>
             </div>
@@ -88,12 +88,12 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
       <CardContent className="p-6">
         {semester.courses.length > 0 && (
           <div className="mb-6">
-            <h4 className="font-medium text-slate-700 mb-3">Courses</h4>
+            <h4 className="font-medium text-blue-800 mb-3">Courses</h4>
             <div className="space-y-2">
               {semester.courses.map((course) => (
                 <div
                   key={course.id}
-                  className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg"
+                  className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg"
                 >
                   <Input
                     value={course.name}
@@ -101,10 +101,10 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
                     className="flex-1 border-0 bg-transparent focus:bg-white"
                     placeholder="Course name"
                   />
-                  <div className="text-sm font-medium text-slate-600 min-w-[60px]">
+                  <div className="text-sm font-medium text-blue-700 min-w-[60px]">
                     {course.credits} credits
                   </div>
-                  <div className="text-sm font-semibold text-blue-600 min-w-[40px]">
+                  <div className="text-sm font-semibold text-blue-800 min-w-[40px]">
                     {course.grade}
                   </div>
                   <Button
@@ -122,13 +122,13 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
         )}
 
         <div className="border-t pt-4">
-          <h4 className="font-medium text-slate-700 mb-3">Add New Course</h4>
+          <h4 className="font-medium text-blue-800 mb-3">Add New Course</h4>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <Input
               placeholder="Course Name"
               value={newCourse.name}
               onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
-              className="md:col-span-2 bg-slate-50 border-slate-200 focus:bg-white focus:border-blue-400"
+              className="md:col-span-2 bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400"
             />
             <Input
               type="number"
@@ -137,13 +137,13 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
               onChange={(e) => setNewCourse({ ...newCourse, credits: e.target.value })}
               min="1"
               max="10"
-              className="bg-slate-50 border-slate-200 focus:bg-white focus:border-blue-400"
+              className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400"
             />
             <Select
               value={newCourse.grade}
               onValueChange={(value) => setNewCourse({ ...newCourse, grade: value })}
             >
-              <SelectTrigger className="bg-slate-50 border-slate-200 focus:bg-white focus:border-blue-400">
+              <SelectTrigger className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400">
                 <SelectValue placeholder="Grade" />
               </SelectTrigger>
               <SelectContent className="bg-white">

@@ -20,17 +20,17 @@ const OverallStats: React.FC<OverallStatsProps> = ({ gpaData }) => {
   };
 
   const getGPAStatus = (gpa: number) => {
-    if (gpa >= 3.7) return { text: 'Excellent', color: 'text-green-600' };
-    if (gpa >= 3.3) return { text: 'Good', color: 'text-blue-600' };
-    if (gpa >= 3.0) return { text: 'Satisfactory', color: 'text-purple-600' };
-    if (gpa >= 2.0) return { text: 'Needs Improvement', color: 'text-teal-600' };
-    return { text: 'Critical', color: 'text-red-600' };
+    if (gpa >= 3.7) return { text: 'Excellent', color: 'text-blue-800' };
+    if (gpa >= 3.3) return { text: 'Good', color: 'text-blue-700' };
+    if (gpa >= 3.0) return { text: 'Satisfactory', color: 'text-blue-600' };
+    if (gpa >= 2.0) return { text: 'Needs Improvement', color: 'text-blue-500' };
+    return { text: 'Critical', color: 'text-blue-400' };
   };
 
   const status = getGPAStatus(gpaData.overallGPA);
 
   return (
-    <Card className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl border-0">
+    <Card className="bg-gradient-to-br from-blue-600 to-blue-800 text-white shadow-xl border-0">
       <CardContent className="p-8">
         <div className="text-center mb-6">
           <h2 className="text-3xl font-bold mb-2">Overall Academic Performance</h2>
@@ -43,7 +43,7 @@ const OverallStats: React.FC<OverallStatsProps> = ({ gpaData }) => {
               {gpaData.overallGPA.toFixed(2)}
             </div>
             <div className="text-lg text-blue-100">Overall GPA</div>
-            <div className={`text-sm font-medium ${status.color.replace('text-', 'text-white opacity-90')}`}>
+            <div className="text-sm font-medium text-blue-200">
               {status.text}
             </div>
           </div>

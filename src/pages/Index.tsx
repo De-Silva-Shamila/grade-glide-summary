@@ -5,7 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Plus } from 'lucide-react';
 import SemesterCard from '@/components/SemesterCard';
 import OverallStats from '@/components/OverallStats';
-import { Semester, GPAData } from '@/types/gpa';
+import GPAGoalTracker from '@/components/GPAGoalTracker';
+import PlannedModules from '@/components/PlannedModules';
+import { Semester, GPAData, Course } from '@/types/gpa';
 import { calculateSemesterGPA, calculateOverallGPA } from '@/utils/gpaCalculations';
 
 const Index = () => {
@@ -66,23 +68,63 @@ const Index = () => {
     }));
   };
 
+  const handleModuleComplete = (completedModule: any) => {
+    // Find or create the semester for this module
+    let targetSemester = gpaData.semesters.find(s => s.name === completedModule.semester);
+    
+    if (!targetSemester) {
+      // Create new semester if it doesn't exist
+      targetSemester = {
+        id: Date.now().toString(),
+        name: completedModule.semester,
+        courses: [],
+        gpa: 0,
+        totalCredits: 0,
+      };
+      setGpaData(prev => ({
+        ...prev,
+        semesters: [...prev.semesters, targetSemester!],
+      }));
+    }
+
+    // Add the completed module as a course
+    const course: Course = {
+      id: Date.now().toString(),
+      name: completedModule.name,
+      credits: completedModule.credits,
+      grade: completedModule.grade,
+    };
+
+    const updatedSemester = {
+      ...targetSemester,
+      courses: [...targetSemester.courses, course],
+    };
+
+    updateSemester(updatedSemester);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-slate-800 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4">
             GPA Calculator
           </h1>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+          <p className="text-xl text-blue-700 max-w-2xl mx-auto">
             Track your academic performance across semesters and calculate your overall GPA
           </p>
         </div>
 
-        <div className="max-w-4xl mx-auto space-y-8">
+        <div className="max-w-6xl mx-auto space-y-8">
           <OverallStats gpaData={gpaData} />
 
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-2xl font-semibold text-slate-800 mb-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <GPAGoalTracker gpaData={gpaData} />
+            <PlannedModules onModuleComplete={handleModuleComplete} />
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-blue-200">
+            <h3 className="text-2xl font-semibold text-blue-800 mb-4">
               Add New Semester
             </h3>
             <div className="flex gap-3">
@@ -90,7 +132,7 @@ const Index = () => {
                 placeholder="Enter semester name (e.g., Fall 2024)"
                 value={newSemesterName}
                 onChange={(e) => setNewSemesterName(e.target.value)}
-                className="flex-1"
+                className="flex-1 border-blue-300 focus:border-blue-500"
                 onKeyPress={(e) => e.key === 'Enter' && addSemester()}
               />
               <Button 
@@ -106,11 +148,11 @@ const Index = () => {
 
           <div className="space-y-6">
             {gpaData.semesters.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-xl shadow-lg">
-                <div className="text-slate-400 mb-4">
+              <div className="text-center py-12 bg-white rounded-xl shadow-lg border border-blue-200">
+                <div className="text-blue-400 mb-4">
                   <div className="text-6xl mb-4">📚</div>
-                  <h3 className="text-xl font-medium">No semesters added yet</h3>
-                  <p className="text-slate-500">Add your first semester to get started</p>
+                  <h3 className="text-xl font-medium text-blue-700">No semesters added yet</h3>
+                  <p className="text-blue-600">Add your first semester to get started</p>
                 </div>
               </div>
             ) : (
