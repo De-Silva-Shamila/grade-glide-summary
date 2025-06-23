@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, BookOpen } from 'lucide-react';
+import { Plus, Trash2, BookOpen, Edit, Save, X } from 'lucide-react';
 import { GRADE_OPTIONS } from '@/types/gpa';
 
 interface PlannedModule {
@@ -27,6 +27,12 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => 
     credits: '',
     semester: ''
   });
+  const [editingModule, setEditingModule] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState({
+    name: '',
+    credits: '',
+    semester: ''
+  });
 
   const addModule = () => {
     if (!newModule.name.trim() || !newModule.credits || !newModule.semester.trim()) return;
@@ -44,6 +50,36 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => 
 
   const deleteModule = (moduleId: string) => {
     setModules(prev => prev.filter(module => module.id !== moduleId));
+  };
+
+  const startEditModule = (module: PlannedModule) => {
+    setEditingModule(module.id);
+    setEditValues({
+      name: module.name,
+      credits: module.credits.toString(),
+      semester: module.semester
+    });
+  };
+
+  const saveEditModule = (moduleId: string) => {
+    if (!editValues.name.trim() || !editValues.credits || !editValues.semester.trim()) return;
+
+    setModules(prev => prev.map(module =>
+      module.id === moduleId 
+        ? { 
+            ...module, 
+            name: editValues.name.trim(),
+            credits: parseInt(editValues.credits),
+            semester: editValues.semester.trim()
+          } 
+        : module
+    ));
+    setEditingModule(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingModule(null);
+    setEditValues({ name: '', credits: '', semester: '' });
   };
 
   const updateModuleGrade = (moduleId: string, grade: string) => {
@@ -124,37 +160,90 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => 
                   key={module.id}
                   className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200"
                 >
-                  <div className="flex-1">
-                    <div className="font-medium text-blue-800">{module.name}</div>
-                    <div className="text-sm text-blue-600">
-                      {module.credits} credits • {module.semester}
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor={`grade-${module.id}`} className="text-blue-700 font-medium text-xs">Grade</Label>
-                    <Select
-                      onValueChange={(grade) => updateModuleGrade(module.id, grade)}
-                    >
-                      <SelectTrigger id={`grade-${module.id}`} className="w-24 bg-blue-50 border-blue-300 text-blue-900">
-                        <SelectValue placeholder="Grade" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border-blue-200 z-50">
-                        {GRADE_OPTIONS.map((grade) => (
-                          <SelectItem key={grade} value={grade} className="hover:bg-blue-50 text-blue-900">
-                            {grade}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteModule(module.id)}
-                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 border-0"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                  {editingModule === module.id ? (
+                    <>
+                      <div className="flex-1 grid grid-cols-3 gap-2">
+                        <Input
+                          value={editValues.name}
+                          onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
+                          className="border-blue-300 focus:border-blue-500 bg-white text-blue-900"
+                          placeholder="Module name"
+                        />
+                        <Input
+                          type="number"
+                          value={editValues.credits}
+                          onChange={(e) => setEditValues({ ...editValues, credits: e.target.value })}
+                          className="border-blue-300 focus:border-blue-500 bg-white text-blue-900"
+                          min="1"
+                          max="10"
+                        />
+                        <Input
+                          value={editValues.semester}
+                          onChange={(e) => setEditValues({ ...editValues, semester: e.target.value })}
+                          className="border-blue-300 focus:border-blue-500 bg-white text-blue-900"
+                          placeholder="Semester"
+                        />
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => saveEditModule(module.id)}
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 border-0"
+                      >
+                        <Save className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={cancelEdit}
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 border-0"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex-1">
+                        <div className="font-medium text-blue-800">{module.name}</div>
+                        <div className="text-sm text-blue-600">
+                          {module.credits} credits • {module.semester}
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor={`grade-${module.id}`} className="text-blue-700 font-medium text-xs">Grade</Label>
+                        <Select
+                          onValueChange={(grade) => updateModuleGrade(module.id, grade)}
+                        >
+                          <SelectTrigger id={`grade-${module.id}`} className="w-24 bg-blue-50 border-blue-300 text-blue-900 focus:border-blue-500">
+                            <SelectValue placeholder="Grade" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white border-blue-200 z-50">
+                            {GRADE_OPTIONS.map((grade) => (
+                              <SelectItem key={grade} value={grade} className="hover:bg-blue-50 text-blue-900 focus:bg-blue-50 focus:text-blue-900">
+                                {grade}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => startEditModule(module)}
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 border-0"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteModule(module.id)}
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 border-0"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               ))}
             </div>

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Edit, Save, X } from 'lucide-react';
 import { Course, Semester, GRADE_OPTIONS } from '@/types/gpa';
 
 interface SemesterCardProps {
@@ -20,6 +20,8 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
   onDeleteSemester,
 }) => {
   const [newCourse, setNewCourse] = useState({ name: '', credits: '', grade: '' });
+  const [editingCourse, setEditingCourse] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState({ name: '', credits: '', grade: '' });
 
   const addCourse = () => {
     if (!newCourse.name.trim() || !newCourse.credits || !newCourse.grade) return;
@@ -48,14 +50,38 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
     onUpdateSemester(updatedSemester);
   };
 
-  const updateCourseName = (courseId: string, name: string) => {
+  const startEditCourse = (course: Course) => {
+    setEditingCourse(course.id);
+    setEditValues({
+      name: course.name,
+      credits: course.credits.toString(),
+      grade: course.grade
+    });
+  };
+
+  const saveEditCourse = (courseId: string) => {
+    if (!editValues.name.trim() || !editValues.credits || !editValues.grade) return;
+
     const updatedSemester = {
       ...semester,
       courses: semester.courses.map(course =>
-        course.id === courseId ? { ...course, name } : course
+        course.id === courseId 
+          ? { 
+              ...course, 
+              name: editValues.name.trim(),
+              credits: parseInt(editValues.credits),
+              grade: editValues.grade
+            } 
+          : course
       ),
     };
     onUpdateSemester(updatedSemester);
+    setEditingCourse(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingCourse(null);
+    setEditValues({ name: '', credits: '', grade: '' });
   };
 
   return (
@@ -96,26 +122,81 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
                   key={course.id}
                   className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200"
                 >
-                  <Input
-                    value={course.name}
-                    onChange={(e) => updateCourseName(course.id, e.target.value)}
-                    className="flex-1 border-0 bg-transparent focus:bg-white focus:border-blue-400"
-                    placeholder="Course name"
-                  />
-                  <div className="text-sm font-medium text-blue-700 min-w-[60px]">
-                    {course.credits} credits
-                  </div>
-                  <div className="text-sm font-semibold text-blue-800 min-w-[40px]">
-                    {course.grade}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteCourse(course.id)}
-                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                  {editingCourse === course.id ? (
+                    <>
+                      <Input
+                        value={editValues.name}
+                        onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
+                        className="flex-1 border-blue-300 focus:border-blue-500 bg-white text-blue-900"
+                        placeholder="Course name"
+                      />
+                      <Input
+                        type="number"
+                        value={editValues.credits}
+                        onChange={(e) => setEditValues({ ...editValues, credits: e.target.value })}
+                        className="w-20 border-blue-300 focus:border-blue-500 bg-white text-blue-900"
+                        min="1"
+                        max="10"
+                      />
+                      <Select
+                        value={editValues.grade}
+                        onValueChange={(value) => setEditValues({ ...editValues, grade: value })}
+                      >
+                        <SelectTrigger className="w-24 bg-white border-blue-300 focus:border-blue-500 text-blue-900">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border-blue-200 z-50">
+                          {GRADE_OPTIONS.map((grade) => (
+                            <SelectItem key={grade} value={grade} className="hover:bg-blue-50 text-blue-900 focus:bg-blue-50 focus:text-blue-900">
+                              {grade}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => saveEditCourse(course.id)}
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
+                      >
+                        <Save className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={cancelEdit}
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex-1 text-blue-900 font-medium">{course.name}</div>
+                      <div className="text-sm font-medium text-blue-700 min-w-[60px]">
+                        {course.credits} credits
+                      </div>
+                      <div className="text-sm font-semibold text-blue-800 min-w-[40px]">
+                        {course.grade}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => startEditCourse(course)}
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteCourse(course.id)}
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
@@ -159,7 +240,7 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
                 </SelectTrigger>
                 <SelectContent className="bg-white border-blue-200 z-50">
                   {GRADE_OPTIONS.map((grade) => (
-                    <SelectItem key={grade} value={grade} className="hover:bg-blue-50 text-blue-900">
+                    <SelectItem key={grade} value={grade} className="hover:bg-blue-50 text-blue-900 focus:bg-blue-50 focus:text-blue-900">
                       {grade}
                     </SelectItem>
                   ))}
