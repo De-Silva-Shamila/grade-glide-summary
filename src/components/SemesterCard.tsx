@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Plus } from 'lucide-react';
 import { Course, Semester, GRADE_OPTIONS } from '@/types/gpa';
@@ -77,7 +78,7 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
               variant="ghost"
               size="sm"
               onClick={() => onDeleteSemester(semester.id)}
-              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -111,7 +112,7 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => deleteCourse(course.id)}
-                    className="text-red-500 hover:text-red-700 hover:bg-red-100 p-1"
+                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -124,40 +125,51 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
         <div className="border-t pt-4">
           <h4 className="font-medium text-blue-800 mb-3">Add New Course</h4>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <Input
-              placeholder="Course Name"
-              value={newCourse.name}
-              onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
-              className="md:col-span-2 bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400"
-            />
-            <Input
-              type="number"
-              placeholder="Credits"
-              value={newCourse.credits}
-              onChange={(e) => setNewCourse({ ...newCourse, credits: e.target.value })}
-              min="1"
-              max="10"
-              className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400"
-            />
-            <Select
-              value={newCourse.grade}
-              onValueChange={(value) => setNewCourse({ ...newCourse, grade: value })}
-            >
-              <SelectTrigger className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400">
-                <SelectValue placeholder="Grade" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {GRADE_OPTIONS.map((grade) => (
-                  <SelectItem key={grade} value={grade}>
-                    {grade}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="md:col-span-2">
+              <Label htmlFor="course-name" className="text-blue-700 font-medium">Course Name</Label>
+              <Input
+                id="course-name"
+                placeholder="Enter course name"
+                value={newCourse.name}
+                onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
+                className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400"
+              />
+            </div>
+            <div>
+              <Label htmlFor="course-credits" className="text-blue-700 font-medium">Credits</Label>
+              <Input
+                id="course-credits"
+                type="number"
+                placeholder="Credits"
+                value={newCourse.credits}
+                onChange={(e) => setNewCourse({ ...newCourse, credits: e.target.value })}
+                min="1"
+                max="10"
+                className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400"
+              />
+            </div>
+            <div>
+              <Label htmlFor="course-grade" className="text-blue-700 font-medium">Grade</Label>
+              <Select
+                value={newCourse.grade}
+                onValueChange={(value) => setNewCourse({ ...newCourse, grade: value })}
+              >
+                <SelectTrigger id="course-grade" className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400">
+                  <SelectValue placeholder="Select grade" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-blue-200">
+                  {GRADE_OPTIONS.map((grade) => (
+                    <SelectItem key={grade} value={grade} className="hover:bg-blue-50">
+                      {grade}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <Button 
             onClick={addCourse} 
-            className="mt-3 w-full bg-blue-600 hover:bg-blue-700"
+            className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white"
             disabled={!newCourse.name.trim() || !newCourse.credits || !newCourse.grade}
           >
             <Plus className="h-4 w-4 mr-2" />

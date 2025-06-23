@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Target, Calculator } from 'lucide-react';
 import { GPAData } from '@/types/gpa';
 
@@ -32,10 +33,10 @@ const GPAGoalTracker: React.FC<GPAGoalTrackerProps> = ({ gpaData }) => {
   };
 
   const getRequiredGPAColor = (required: number) => {
-    if (required > 4.0) return 'text-red-600';
-    if (required > 3.5) return 'text-blue-600';
+    if (required > 4.0) return 'text-blue-900';
+    if (required > 3.5) return 'text-blue-800';
     if (required > 3.0) return 'text-blue-700';
-    return 'text-blue-800';
+    return 'text-blue-600';
   };
 
   const getRequiredGPAMessage = (required: number) => {
@@ -56,10 +57,11 @@ const GPAGoalTracker: React.FC<GPAGoalTrackerProps> = ({ gpaData }) => {
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div>
-            <label className="block text-sm font-medium text-blue-800 mb-2">
+            <Label htmlFor="target-gpa" className="block text-sm font-medium text-blue-800 mb-2">
               Target GPA
-            </label>
+            </Label>
             <Input
+              id="target-gpa"
               type="number"
               placeholder="e.g., 3.5"
               value={targetGPA}
@@ -71,10 +73,11 @@ const GPAGoalTracker: React.FC<GPAGoalTrackerProps> = ({ gpaData }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-blue-800 mb-2">
+            <Label htmlFor="remaining-credits" className="block text-sm font-medium text-blue-800 mb-2">
               Remaining Credits
-            </label>
+            </Label>
             <Input
+              id="remaining-credits"
               type="number"
               placeholder="e.g., 60"
               value={remainingCredits}
@@ -87,7 +90,7 @@ const GPAGoalTracker: React.FC<GPAGoalTrackerProps> = ({ gpaData }) => {
             <Button
               onClick={calculateRequiredGPA}
               disabled={!targetGPA || !remainingCredits}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Calculator className="h-4 w-4 mr-2" />
               Calculate
