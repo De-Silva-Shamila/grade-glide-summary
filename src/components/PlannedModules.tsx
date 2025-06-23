@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,10 +18,15 @@ interface PlannedModule {
 
 interface PlannedModulesProps {
   onModuleComplete: (module: PlannedModule) => void;
+  plannedModules: PlannedModule[];
+  onUpdatePlannedModules: (modules: PlannedModule[]) => void;
 }
 
-const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => {
-  const [modules, setModules] = useState<PlannedModule[]>([]);
+const PlannedModules: React.FC<PlannedModulesProps> = ({ 
+  onModuleComplete, 
+  plannedModules, 
+  onUpdatePlannedModules 
+}) => {
   const [newModule, setNewModule] = useState({
     name: '',
     credits: '',
@@ -44,12 +49,14 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => 
       semester: newModule.semester.trim(),
     };
 
-    setModules(prev => [...prev, module]);
+    const updatedModules = [...plannedModules, module];
+    onUpdatePlannedModules(updatedModules);
     setNewModule({ name: '', credits: '', semester: '' });
   };
 
   const deleteModule = (moduleId: string) => {
-    setModules(prev => prev.filter(module => module.id !== moduleId));
+    const updatedModules = plannedModules.filter(module => module.id !== moduleId);
+    onUpdatePlannedModules(updatedModules);
   };
 
   const startEditModule = (module: PlannedModule) => {
@@ -64,7 +71,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => 
   const saveEditModule = (moduleId: string) => {
     if (!editValues.name.trim() || !editValues.credits || !editValues.semester.trim()) return;
 
-    setModules(prev => prev.map(module =>
+    const updatedModules = plannedModules.map(module =>
       module.id === moduleId 
         ? { 
             ...module, 
@@ -73,7 +80,8 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => 
             semester: editValues.semester.trim()
           } 
         : module
-    ));
+    );
+    onUpdatePlannedModules(updatedModules);
     setEditingModule(null);
   };
 
@@ -83,15 +91,16 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => 
   };
 
   const updateModuleGrade = (moduleId: string, grade: string) => {
-    const module = modules.find(m => m.id === moduleId);
+    const module = plannedModules.find(m => m.id === moduleId);
     if (module) {
       const completedModule = { ...module, grade };
       onModuleComplete(completedModule);
-      setModules(prev => prev.filter(m => m.id !== moduleId));
+      const updatedModules = plannedModules.filter(m => m.id !== moduleId);
+      onUpdatePlannedModules(updatedModules);
     }
   };
 
-  const pendingModules = modules.filter(m => !m.grade);
+  const pendingModules = plannedModules.filter(m => !m.grade);
 
   return (
     <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
@@ -250,7 +259,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => 
           </div>
         )}
 
-        {modules.length === 0 && (
+        {plannedModules.length === 0 && (
           <div className="text-center py-8">
             <BookOpen className="h-12 w-12 text-blue-400 mx-auto mb-3" />
             <h3 className="text-lg font-medium text-blue-700">No modules planned yet</h3>

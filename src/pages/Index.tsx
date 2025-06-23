@@ -11,11 +11,24 @@ import PlannedModules from '@/components/PlannedModules';
 import { Semester, GPAData, Course } from '@/types/gpa';
 import { calculateSemesterGPA, calculateOverallGPA } from '@/utils/gpaCalculations';
 
+interface PlannedModule {
+  id: string;
+  name: string;
+  credits: number;
+  semester: string;
+  grade?: string;
+}
+
+interface ExtendedGPAData extends GPAData {
+  plannedModules: PlannedModule[];
+}
+
 const Index = () => {
-  const [gpaData, setGpaData] = useState<GPAData>({
+  const [gpaData, setGpaData] = useState<ExtendedGPAData>({
     semesters: [],
     overallGPA: 0,
     totalCredits: 0,
+    plannedModules: [],
   });
   const [newSemesterName, setNewSemesterName] = useState('');
 
@@ -25,7 +38,12 @@ const Index = () => {
     if (savedData) {
       try {
         const parsedData = JSON.parse(savedData);
-        setGpaData(parsedData);
+        setGpaData({
+          semesters: parsedData.semesters || [],
+          overallGPA: parsedData.overallGPA || 0,
+          totalCredits: parsedData.totalCredits || 0,
+          plannedModules: parsedData.plannedModules || [],
+        });
       } catch (error) {
         console.error('Error loading saved data:', error);
       }
@@ -42,6 +60,7 @@ const Index = () => {
     const { overallGPA, totalCredits } = calculateOverallGPA(updatedSemesters);
 
     const updatedGpaData = {
+      ...gpaData,
       semesters: updatedSemesters,
       overallGPA,
       totalCredits,
@@ -51,7 +70,10 @@ const Index = () => {
     
     // Save to localStorage whenever data changes
     localStorage.setItem('gpaData', JSON.stringify(updatedGpaData));
-  }, [gpaData.semesters.length, gpaData.semesters.map(s => s.courses.length).join(',')]);
+  }, [
+    gpaData.semesters.length, 
+    JSON.stringify(gpaData.semesters.map(s => s.courses))
+  ]);
 
   const addSemester = () => {
     if (!newSemesterName.trim()) return;
@@ -84,6 +106,13 @@ const Index = () => {
     setGpaData(prev => ({
       ...prev,
       semesters: prev.semesters.filter(semester => semester.id !== semesterId),
+    }));
+  };
+
+  const updatePlannedModules = (modules: PlannedModule[]) => {
+    setGpaData(prev => ({
+      ...prev,
+      plannedModules: modules,
     }));
   };
 
@@ -141,7 +170,12 @@ const Index = () => {
       reader.onload = (e) => {
         try {
           const jsonData = JSON.parse(e.target?.result as string);
-          setGpaData(jsonData);
+          setGpaData({
+            semesters: jsonData.semesters || [],
+            overallGPA: jsonData.overallGPA || 0,
+            totalCredits: jsonData.totalCredits || 0,
+            plannedModules: jsonData.plannedModules || [],
+          });
         } catch (error) {
           console.error('Error parsing JSON file:', error);
           alert('Error parsing JSON file. Please check the file format.');
@@ -170,7 +204,11 @@ const Index = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <GPAGoalTracker gpaData={gpaData} />
-            <PlannedModules onModuleComplete={handleModuleComplete} />
+            <PlannedModules 
+              onModuleComplete={handleModuleComplete}
+              plannedModules={gpaData.plannedModules}
+              onUpdatePlannedModules={updatePlannedModules}
+            />
           </div>
 
           <div className="bg-white rounded-xl shadow-lg p-6 border border-blue-200">
