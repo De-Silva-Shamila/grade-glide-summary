@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
 import SemesterCard from '@/components/SemesterCard';
 import OverallStats from '@/components/OverallStats';
@@ -128,21 +129,27 @@ const Index = () => {
               Add New Semester
             </h3>
             <div className="flex gap-3">
-              <Input
-                placeholder="Enter semester name (e.g., Fall 2024)"
-                value={newSemesterName}
-                onChange={(e) => setNewSemesterName(e.target.value)}
-                className="flex-1 border-blue-300 focus:border-blue-500"
-                onKeyPress={(e) => e.key === 'Enter' && addSemester()}
-              />
-              <Button 
-                onClick={addSemester}
-                disabled={!newSemesterName.trim()}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Semester
-              </Button>
+              <div className="flex-1">
+                <Label htmlFor="semester-name" className="text-blue-700 font-medium">Semester Name</Label>
+                <Input
+                  id="semester-name"
+                  placeholder="Enter semester name (e.g., Fall 2024)"
+                  value={newSemesterName}
+                  onChange={(e) => setNewSemesterName(e.target.value)}
+                  className="border-blue-300 focus:border-blue-500 bg-blue-50 text-blue-900"
+                  onKeyPress={(e) => e.key === 'Enter' && addSemester()}
+                />
+              </div>
+              <div className="flex items-end">
+                <Button 
+                  onClick={addSemester}
+                  disabled={!newSemesterName.trim()}
+                  className="bg-blue-600 hover:bg-blue-700 text-white border-0"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Semester
+                </Button>
+              </div>
             </div>
           </div>
 

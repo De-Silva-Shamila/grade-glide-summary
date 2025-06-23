@@ -69,7 +69,7 @@ const GPAGoalTracker: React.FC<GPAGoalTrackerProps> = ({ gpaData }) => {
               min="0"
               max="4"
               step="0.01"
-              className="bg-white border-blue-300 focus:border-blue-500"
+              className="bg-white border-blue-300 focus:border-blue-500 text-blue-900"
             />
           </div>
           <div>
@@ -83,14 +83,14 @@ const GPAGoalTracker: React.FC<GPAGoalTrackerProps> = ({ gpaData }) => {
               value={remainingCredits}
               onChange={(e) => setRemainingCredits(e.target.value)}
               min="1"
-              className="bg-white border-blue-300 focus:border-blue-500"
+              className="bg-white border-blue-300 focus:border-blue-500 text-blue-900"
             />
           </div>
           <div className="flex items-end">
             <Button
               onClick={calculateRequiredGPA}
               disabled={!targetGPA || !remainingCredits}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white border-0"
             >
               <Calculator className="h-4 w-4 mr-2" />
               Calculate

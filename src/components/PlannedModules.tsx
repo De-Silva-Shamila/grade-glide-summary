@@ -55,7 +55,6 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => 
     }
   };
 
-  const completedModules = modules.filter(m => m.grade);
   const pendingModules = modules.filter(m => !m.grade);
 
   return (
@@ -77,7 +76,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => 
                 placeholder="Enter module name"
                 value={newModule.name}
                 onChange={(e) => setNewModule({ ...newModule, name: e.target.value })}
-                className="bg-white border-blue-300 focus:border-blue-500"
+                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900"
               />
             </div>
             <div>
@@ -90,7 +89,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => 
                 onChange={(e) => setNewModule({ ...newModule, credits: e.target.value })}
                 min="1"
                 max="10"
-                className="bg-white border-blue-300 focus:border-blue-500"
+                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900"
               />
             </div>
             <div>
@@ -100,14 +99,14 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => 
                 placeholder="e.g., Fall 2024"
                 value={newModule.semester}
                 onChange={(e) => setNewModule({ ...newModule, semester: e.target.value })}
-                className="bg-white border-blue-300 focus:border-blue-500"
+                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900"
               />
             </div>
             <div className="flex items-end">
               <Button
                 onClick={addModule}
                 disabled={!newModule.name.trim() || !newModule.credits || !newModule.semester.trim()}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white border-0"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Module
@@ -136,12 +135,12 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => 
                     <Select
                       onValueChange={(grade) => updateModuleGrade(module.id, grade)}
                     >
-                      <SelectTrigger id={`grade-${module.id}`} className="w-24 bg-blue-50 border-blue-300">
+                      <SelectTrigger id={`grade-${module.id}`} className="w-24 bg-blue-50 border-blue-300 text-blue-900">
                         <SelectValue placeholder="Grade" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white border-blue-200">
+                      <SelectContent className="bg-white border-blue-200 z-50">
                         {GRADE_OPTIONS.map((grade) => (
-                          <SelectItem key={grade} value={grade} className="hover:bg-blue-50">
+                          <SelectItem key={grade} value={grade} className="hover:bg-blue-50 text-blue-900">
                             {grade}
                           </SelectItem>
                         ))}
@@ -152,7 +151,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({ onModuleComplete }) => 
                     variant="ghost"
                     size="sm"
                     onClick={() => deleteModule(module.id)}
-                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-100"
+                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 border-0"
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
