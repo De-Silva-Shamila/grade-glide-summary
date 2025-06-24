@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,8 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
   const [newCourse, setNewCourse] = useState({ name: '', credits: '', grade: '' });
   const [editingCourse, setEditingCourse] = useState<string | null>(null);
   const [editValues, setEditValues] = useState({ name: '', credits: '', grade: '' });
+  const [editingSemesterName, setEditingSemesterName] = useState(false);
+  const [semesterNameValue, setSemesterNameValue] = useState(semester.name);
 
   const addCourse = () => {
     if (!newCourse.name.trim() || !newCourse.credits || !newCourse.grade) return;
@@ -84,13 +85,72 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
     setEditValues({ name: '', credits: '', grade: '' });
   };
 
+  const startEditSemesterName = () => {
+    setEditingSemesterName(true);
+    setSemesterNameValue(semester.name);
+  };
+
+  const saveEditSemesterName = () => {
+    if (!semesterNameValue.trim()) return;
+    
+    const updatedSemester = {
+      ...semester,
+      name: semesterNameValue.trim(),
+    };
+    onUpdateSemester(updatedSemester);
+    setEditingSemesterName(false);
+  };
+
+  const cancelEditSemesterName = () => {
+    setEditingSemesterName(false);
+    setSemesterNameValue(semester.name);
+  };
+
   return (
     <Card className="w-full animate-fade-in shadow-lg border-0 bg-white">
       <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-xl font-semibold text-blue-900">
-            {semester.name}
-          </CardTitle>
+          {editingSemesterName ? (
+            <div className="flex items-center gap-2 flex-1">
+              <Input
+                value={semesterNameValue}
+                onChange={(e) => setSemesterNameValue(e.target.value)}
+                className="flex-1 border-blue-300 focus:border-blue-500 bg-white text-blue-900"
+                placeholder="Semester name"
+                onKeyPress={(e) => e.key === 'Enter' && saveEditSemesterName()}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={saveEditSemesterName}
+                className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
+              >
+                <Save className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={cancelEditSemesterName}
+                className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-xl font-semibold text-blue-900">
+                {semester.name}
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={startEditSemesterName}
+                className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
           <div className="flex items-center gap-4">
             <div className="text-right">
               <div className="text-2xl font-bold text-blue-600">
