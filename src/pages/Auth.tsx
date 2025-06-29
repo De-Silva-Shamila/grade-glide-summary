@@ -25,6 +25,7 @@ const Auth = () => {
     try {
       let result;
       if (isLogin) {
+        console.log('Attempting sign in with:', email);
         result = await signIn(email, password);
       } else {
         if (!username.trim()) {
@@ -36,26 +37,37 @@ const Auth = () => {
           setLoading(false);
           return;
         }
+        console.log('Attempting sign up with:', email, username);
         result = await signUp(email, password, username);
       }
 
+      console.log('Auth result:', result);
+
       if (result.error) {
+        console.error('Auth error:', result.error);
         toast({
           title: "Authentication Error",
-          description: result.error.message,
+          description: result.error.message || "An error occurred during authentication",
           variant: "destructive",
         });
       } else {
         if (isLogin) {
+          toast({
+            title: "Success!",
+            description: "Signed in successfully",
+          });
           navigate('/');
         } else {
           toast({
             title: "Account created!",
-            description: "Please check your email to verify your account.",
+            description: "You can now sign in with your credentials.",
           });
+          setIsLogin(true);
+          setPassword('');
         }
       }
     } catch (error) {
+      console.error('Unexpected error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -125,7 +137,11 @@ const Auth = () => {
           <div className="mt-4 text-center">
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setPassword('');
+                setUsername('');
+              }}
               className="text-blue-600 hover:text-blue-800 underline"
             >
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
