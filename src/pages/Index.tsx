@@ -1,15 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Download, Upload } from 'lucide-react';
+import { Plus, Download, Upload, LogOut } from 'lucide-react';
 import SemesterCard from '@/components/SemesterCard';
 import OverallStats from '@/components/OverallStats';
 import GPAGoalTracker from '@/components/GPAGoalTracker';
 import PlannedModules from '@/components/PlannedModules';
-import { Semester, GPAData, Course } from '@/types/gpa';
-import { calculateSemesterGPA, calculateOverallGPA } from '@/utils/gpaCalculations';
+import { useAuth } from '@/hooks/useAuth';
+import { useGPAData } from '@/hooks/useGPAData';
+import { Semester, Course } from '@/types/gpa';
+import { useToast } from '@/hooks/use-toast';
 
 interface PlannedModule {
   id: string;
@@ -19,125 +21,98 @@ interface PlannedModule {
   grade?: string;
 }
 
-interface ExtendedGPAData extends GPAData {
-  plannedModules: PlannedModule[];
-}
-
 const Index = () => {
-  const [gpaData, setGpaData] = useState<ExtendedGPAData>({
-    semesters: [],
-    overallGPA: 0,
-    totalCredits: 0,
-    plannedModules: [],
-  });
+  const { signOut } = useAuth();
+  const { gpaData, loading, saveSemester, deleteSemester, savePlannedModules, importJSONData } = useGPAData();
   const [newSemesterName, setNewSemesterName] = useState('');
+  const { toast } = useToast();
 
-  useEffect(() => {
-    // Load data from localStorage on component mount
-    const savedData = localStorage.getItem('gpaData');
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        setGpaData({
-          semesters: parsedData.semesters || [],
-          overallGPA: parsedData.overallGPA || 0,
-          totalCredits: parsedData.totalCredits || 0,
-          plannedModules: parsedData.plannedModules || [],
-        });
-      } catch (error) {
-        console.error('Error loading saved data:', error);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    // Recalculate overall GPA whenever semesters change
-    const updatedSemesters = gpaData.semesters.map(semester => {
-      const { gpa, totalCredits } = calculateSemesterGPA(semester.courses);
-      return { ...semester, gpa, totalCredits };
-    });
-
-    const { overallGPA, totalCredits } = calculateOverallGPA(updatedSemesters);
-
-    const updatedGpaData = {
-      ...gpaData,
-      semesters: updatedSemesters,
-      overallGPA,
-      totalCredits,
-    };
-
-    setGpaData(updatedGpaData);
-    
-    // Save to localStorage whenever data changes
-    localStorage.setItem('gpaData', JSON.stringify(updatedGpaData));
-  }, [
-    gpaData.semesters.length, 
-    JSON.stringify(gpaData.semesters.map(s => s.courses))
-  ]);
-
-  const addSemester = () => {
+  const addSemester = async () => {
     if (!newSemesterName.trim()) return;
 
     const newSemester: Semester = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       name: newSemesterName.trim(),
       courses: [],
       gpa: 0,
       totalCredits: 0,
     };
 
-    setGpaData(prev => ({
-      ...prev,
-      semesters: [...prev.semesters, newSemester],
-    }));
-    setNewSemesterName('');
+    try {
+      await saveSemester(newSemester);
+      setNewSemesterName('');
+      toast({
+        title: "Success",
+        description: "Semester added successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add semester",
+        variant: "destructive",
+      });
+    }
   };
 
-  const updateSemester = (updatedSemester: Semester) => {
-    setGpaData(prev => ({
-      ...prev,
-      semesters: prev.semesters.map(semester =>
-        semester.id === updatedSemester.id ? updatedSemester : semester
-      ),
-    }));
+  const updateSemester = async (updatedSemester: Semester) => {
+    try {
+      await saveSemester(updatedSemester);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update semester",
+        variant: "destructive",
+      });
+    }
   };
 
-  const deleteSemester = (semesterId: string) => {
-    setGpaData(prev => ({
-      ...prev,
-      semesters: prev.semesters.filter(semester => semester.id !== semesterId),
-    }));
+  const handleDeleteSemester = async (semesterId: string) => {
+    try {
+      await deleteSemester(semesterId);
+      toast({
+        title: "Success",
+        description: "Semester deleted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete semester",
+        variant: "destructive",
+      });
+    }
   };
 
-  const updatePlannedModules = (modules: PlannedModule[]) => {
-    setGpaData(prev => ({
-      ...prev,
-      plannedModules: modules,
-    }));
+  const updatePlannedModules = async (modules: PlannedModule[]) => {
+    try {
+      await savePlannedModules(modules);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update planned modules",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleModuleComplete = (completedModule: any) => {
+  const handleModuleComplete = async (completedModule: any) => {
     // Find or create the semester for this module
     let targetSemester = gpaData.semesters.find(s => s.name === completedModule.semester);
     
     if (!targetSemester) {
       // Create new semester if it doesn't exist
       targetSemester = {
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         name: completedModule.semester,
         courses: [],
         gpa: 0,
         totalCredits: 0,
       };
-      setGpaData(prev => ({
-        ...prev,
-        semesters: [...prev.semesters, targetSemester!],
-      }));
+      await saveSemester(targetSemester);
     }
 
     // Add the completed module as a course
     const course: Course = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       name: completedModule.name,
       credits: completedModule.credits,
       grade: completedModule.grade,
@@ -148,7 +123,7 @@ const Index = () => {
       courses: [...targetSemester.courses, course],
     };
 
-    updateSemester(updatedSemester);
+    await updateSemester(updatedSemester);
   };
 
   const downloadJSON = () => {
@@ -163,40 +138,60 @@ const Index = () => {
     linkElement.click();
   };
 
-  const uploadJSON = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const uploadJSON = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const jsonData = JSON.parse(e.target?.result as string);
-          setGpaData({
-            semesters: jsonData.semesters || [],
-            overallGPA: jsonData.overallGPA || 0,
-            totalCredits: jsonData.totalCredits || 0,
-            plannedModules: jsonData.plannedModules || [],
+          await importJSONData(jsonData);
+          toast({
+            title: "Success",
+            description: "Data imported successfully",
           });
         } catch (error) {
           console.error('Error parsing JSON file:', error);
-          alert('Error parsing JSON file. Please check the file format.');
+          toast({
+            title: "Error",
+            description: "Error parsing JSON file. Please check the file format.",
+            variant: "destructive",
+          });
         }
       };
       reader.readAsText(file);
     }
-    // Reset the input value to allow uploading the same file again
     event.target.value = '';
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+        <div className="text-blue-600 text-xl">Loading your GPA data...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4">
-            GPA Calculator
-          </h1>
-          <p className="text-xl text-blue-700 max-w-2xl mx-auto">
-            Track your academic performance across semesters and calculate your overall GPA
-          </p>
+        <div className="flex justify-between items-center mb-8">
+          <div className="text-center flex-1">
+            <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4">
+              GPA Calculator
+            </h1>
+            <p className="text-xl text-blue-700 max-w-2xl mx-auto">
+              Track your academic performance across semesters and calculate your overall GPA
+            </p>
+          </div>
+          <Button
+            onClick={signOut}
+            variant="ghost"
+            className="text-blue-600 hover:text-blue-800 hover:bg-blue-100"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
         </div>
 
         <div className="max-w-6xl mx-auto space-y-8">
@@ -290,7 +285,7 @@ const Index = () => {
                   key={semester.id}
                   semester={semester}
                   onUpdateSemester={updateSemester}
-                  onDeleteSemester={deleteSemester}
+                  onDeleteSemester={handleDeleteSemester}
                 />
               ))
             )}
