@@ -1,154 +1,50 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Download, Upload } from 'lucide-react';
+import { Plus, Download, Upload, LogOut, User, Settings } from 'lucide-react';
 import SemesterCard from '@/components/SemesterCard';
 import OverallStats from '@/components/OverallStats';
 import GPAGoalTracker from '@/components/GPAGoalTracker';
 import PlannedModules from '@/components/PlannedModules';
-import { Semester, GPAData, Course } from '@/types/gpa';
-import { calculateSemesterGPA, calculateOverallGPA } from '@/utils/gpaCalculations';
-
-interface PlannedModule {
-  id: string;
-  name: string;
-  credits: number;
-  semester: string;
-  grade?: string;
-}
-
-interface ExtendedGPAData extends GPAData {
-  plannedModules: PlannedModule[];
-}
+import { useAuth } from '@/hooks/useAuth';
+import { useGPAData } from '@/hooks/useGPAData';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 const Index = () => {
-  const [gpaData, setGpaData] = useState<ExtendedGPAData>({
-    semesters: [],
-    overallGPA: 0,
-    totalCredits: 0,
-    plannedModules: [],
-  });
+  const navigate = useNavigate();
+  const { user, signOut, userProfile, updateProfile } = useAuth();
+  const { gpaData, loading, addSemester, updateSemester, deleteSemester, importData } = useGPAData();
   const [newSemesterName, setNewSemesterName] = useState('');
+  const [profileName, setProfileName] = useState('');
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Load data from localStorage on component mount
-    const savedData = localStorage.getItem('gpaData');
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        setGpaData({
-          semesters: parsedData.semesters || [],
-          overallGPA: parsedData.overallGPA || 0,
-          totalCredits: parsedData.totalCredits || 0,
-          plannedModules: parsedData.plannedModules || [],
-        });
-      } catch (error) {
-        console.error('Error loading saved data:', error);
-      }
+    if (!user) {
+      navigate('/auth');
     }
-  }, []);
+  }, [user, navigate]);
 
   useEffect(() => {
-    // Recalculate overall GPA whenever semesters change
-    const updatedSemesters = gpaData.semesters.map(semester => {
-      const { gpa, totalCredits } = calculateSemesterGPA(semester.courses);
-      return { ...semester, gpa, totalCredits };
-    });
+    setProfileName(userProfile?.full_name || '');
+  }, [userProfile]);
 
-    const { overallGPA, totalCredits } = calculateOverallGPA(updatedSemesters);
+  if (!user) {
+    return null; // Will redirect to auth
+  }
 
-    const updatedGpaData = {
-      ...gpaData,
-      semesters: updatedSemesters,
-      overallGPA,
-      totalCredits,
-    };
-
-    setGpaData(updatedGpaData);
-    
-    // Save to localStorage whenever data changes
-    localStorage.setItem('gpaData', JSON.stringify(updatedGpaData));
-  }, [
-    gpaData.semesters.length, 
-    JSON.stringify(gpaData.semesters.map(s => s.courses))
-  ]);
-
-  const addSemester = () => {
+  const handleAddSemester = async () => {
     if (!newSemesterName.trim()) return;
-
-    const newSemester: Semester = {
-      id: Date.now().toString(),
-      name: newSemesterName.trim(),
-      courses: [],
-      gpa: 0,
-      totalCredits: 0,
-    };
-
-    setGpaData(prev => ({
-      ...prev,
-      semesters: [...prev.semesters, newSemester],
-    }));
+    await addSemester(newSemesterName.trim());
     setNewSemesterName('');
   };
 
-  const updateSemester = (updatedSemester: Semester) => {
-    setGpaData(prev => ({
-      ...prev,
-      semesters: prev.semesters.map(semester =>
-        semester.id === updatedSemester.id ? updatedSemester : semester
-      ),
-    }));
-  };
-
-  const deleteSemester = (semesterId: string) => {
-    setGpaData(prev => ({
-      ...prev,
-      semesters: prev.semesters.filter(semester => semester.id !== semesterId),
-    }));
-  };
-
-  const updatePlannedModules = (modules: PlannedModule[]) => {
-    setGpaData(prev => ({
-      ...prev,
-      plannedModules: modules,
-    }));
-  };
-
-  const handleModuleComplete = (completedModule: any) => {
-    // Find or create the semester for this module
-    let targetSemester = gpaData.semesters.find(s => s.name === completedModule.semester);
-    
-    if (!targetSemester) {
-      // Create new semester if it doesn't exist
-      targetSemester = {
-        id: Date.now().toString(),
-        name: completedModule.semester,
-        courses: [],
-        gpa: 0,
-        totalCredits: 0,
-      };
-      setGpaData(prev => ({
-        ...prev,
-        semesters: [...prev.semesters, targetSemester!],
-      }));
-    }
-
-    // Add the completed module as a course
-    const course: Course = {
-      id: Date.now().toString(),
-      name: completedModule.name,
-      credits: completedModule.credits,
-      grade: completedModule.grade,
-    };
-
-    const updatedSemester = {
-      ...targetSemester,
-      courses: [...targetSemester.courses, course],
-    };
-
-    updateSemester(updatedSemester);
+  const handleModuleComplete = async (completedModule: any) => {
+    // This would be handled by the PlannedModules component
+    console.log('Module completed:', completedModule);
   };
 
   const downloadJSON = () => {
@@ -170,12 +66,7 @@ const Index = () => {
       reader.onload = (e) => {
         try {
           const jsonData = JSON.parse(e.target?.result as string);
-          setGpaData({
-            semesters: jsonData.semesters || [],
-            overallGPA: jsonData.overallGPA || 0,
-            totalCredits: jsonData.totalCredits || 0,
-            plannedModules: jsonData.plannedModules || [],
-          });
+          importData(jsonData);
         } catch (error) {
           console.error('Error parsing JSON file:', error);
           alert('Error parsing JSON file. Please check the file format.');
@@ -183,20 +74,81 @@ const Index = () => {
       };
       reader.readAsText(file);
     }
-    // Reset the input value to allow uploading the same file again
     event.target.value = '';
   };
+
+  const handleUpdateProfile = async () => {
+    if (profileName.trim()) {
+      await updateProfile(profileName.trim());
+      setProfileDialogOpen(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+        <div className="text-blue-600 text-xl">Loading your data...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4">
-            GPA Calculator
-          </h1>
-          <p className="text-xl text-blue-700 max-w-2xl mx-auto">
-            Track your academic performance across semesters and calculate your overall GPA
-          </p>
+        <div className="flex justify-between items-center mb-8">
+          <div className="text-center flex-1">
+            <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4">
+              GPA Calculator
+            </h1>
+            <p className="text-xl text-blue-700 max-w-2xl mx-auto">
+              {userProfile?.full_name ? `Welcome back, ${userProfile.full_name}!` : 'Track your academic performance across semesters'}
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <User className="h-4 w-4 mr-2" />
+                  Profile
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Update Profile</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="profile-name">Full Name</Label>
+                    <Input
+                      id="profile-name"
+                      value={profileName}
+                      onChange={(e) => setProfileName(e.target.value)}
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setProfileDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleUpdateProfile}>
+                      Update
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            
+            <Button variant="outline" size="sm" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
 
         <div className="max-w-6xl mx-auto space-y-8">
@@ -207,7 +159,7 @@ const Index = () => {
             <PlannedModules 
               onModuleComplete={handleModuleComplete}
               plannedModules={gpaData.plannedModules}
-              onUpdatePlannedModules={updatePlannedModules}
+              onUpdatePlannedModules={() => {}} // This will be handled by the component itself
             />
           </div>
 
@@ -222,7 +174,7 @@ const Index = () => {
                   className="bg-blue-600 hover:bg-blue-700 text-white border-0"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Save JSON
+                  Export Data
                 </Button>
                 <div className="relative">
                   <input
@@ -238,7 +190,7 @@ const Index = () => {
                   >
                     <label htmlFor="json-upload" className="cursor-pointer">
                       <Upload className="h-4 w-4 mr-2" />
-                      Load JSON
+                      Import Data
                     </label>
                   </Button>
                 </div>
@@ -259,12 +211,12 @@ const Index = () => {
                   value={newSemesterName}
                   onChange={(e) => setNewSemesterName(e.target.value)}
                   className="border-blue-300 focus:border-blue-500 bg-blue-50 text-blue-900"
-                  onKeyPress={(e) => e.key === 'Enter' && addSemester()}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddSemester()}
                 />
               </div>
               <div className="flex items-end">
                 <Button 
-                  onClick={addSemester}
+                  onClick={handleAddSemester}
                   disabled={!newSemesterName.trim()}
                   className="bg-blue-600 hover:bg-blue-700 text-white border-0"
                 >

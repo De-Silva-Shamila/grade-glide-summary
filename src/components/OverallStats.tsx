@@ -5,16 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { GPAData, GRADE_POINTS } from '@/types/gpa';
 import { generateGPAPDF } from '@/utils/pdfGenerator';
+import { useAuth } from '@/hooks/useAuth';
 
 interface OverallStatsProps {
   gpaData: GPAData;
 }
 
 const OverallStats: React.FC<OverallStatsProps> = ({ gpaData }) => {
+  const { userProfile } = useAuth();
+
   const handleDownloadPDF = () => {
     const dataWithGradePoints = {
       ...gpaData,
-      gradePoints: GRADE_POINTS
+      gradePoints: GRADE_POINTS,
+      studentName: userProfile?.full_name || userProfile?.username || 'Student'
     };
     generateGPAPDF(dataWithGradePoints);
   };
@@ -34,7 +38,9 @@ const OverallStats: React.FC<OverallStatsProps> = ({ gpaData }) => {
       <CardContent className="p-8">
         <div className="text-center mb-6">
           <h2 className="text-3xl font-bold mb-2">Overall Academic Performance</h2>
-          <p className="text-blue-100">Comprehensive GPA Summary</p>
+          <p className="text-blue-100">
+            {userProfile?.full_name ? `${userProfile.full_name}'s ` : ''}Comprehensive GPA Summary
+          </p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -70,7 +76,7 @@ const OverallStats: React.FC<OverallStatsProps> = ({ gpaData }) => {
               className="bg-white text-blue-600 hover:bg-blue-50 font-medium px-6 py-3"
             >
               <Download className="h-5 w-5 mr-2" />
-              Download PDF Report
+              Download Academic Transcript
             </Button>
           </div>
         )}
