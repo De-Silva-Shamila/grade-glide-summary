@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 const Index = () => {
   const navigate = useNavigate();
   const { user, signOut, userProfile, updateProfile } = useAuth();
-  const { gpaData, loading, addSemester, updateSemester, deleteSemester, importData } = useGPAData();
+  const { gpaData, loading, addSemester, updateSemester, deleteSemester, importData, updatePlannedModules } = useGPAData();
   const [newSemesterName, setNewSemesterName] = useState('');
   const [profileName, setProfileName] = useState('');
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
@@ -43,8 +43,10 @@ const Index = () => {
   };
 
   const handleModuleComplete = async (completedModule: any) => {
-    // This would be handled by the PlannedModules component
     console.log('Module completed:', completedModule);
+    // Remove the completed module from planned modules
+    const updatedModules = gpaData.plannedModules.filter(m => m.id !== completedModule.id);
+    await updatePlannedModules(updatedModules);
   };
 
   const downloadJSON = () => {
@@ -160,7 +162,7 @@ const Index = () => {
             <PlannedModules 
               onModuleComplete={handleModuleComplete}
               plannedModules={gpaData.plannedModules}
-              onUpdatePlannedModules={() => {}} // This will be handled by the component itself
+              onUpdatePlannedModules={updatePlannedModules}
             />
           </div>
 

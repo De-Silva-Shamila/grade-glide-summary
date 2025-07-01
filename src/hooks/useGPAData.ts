@@ -279,15 +279,19 @@ export function useGPAData() {
     if (!user) return
 
     try {
+      console.log('Updating planned modules:', modules)
+      
       // Delete existing planned modules
-      await supabase
+      const { error: deleteError } = await supabase
         .from('planned_modules')
         .delete()
         .eq('user_id', user.id)
 
+      if (deleteError) throw deleteError
+
       // Insert new modules
       if (modules.length > 0) {
-        const { error } = await supabase
+        const { error: insertError } = await supabase
           .from('planned_modules')
           .insert(
             modules.map(module => ({
@@ -299,10 +303,14 @@ export function useGPAData() {
             }))
           )
 
-        if (error) throw error
+        if (insertError) throw insertError
       }
 
       await fetchData()
+      toast({
+        title: "Modules Updated",
+        description: "Planned modules have been updated successfully.",
+      })
     } catch (error: any) {
       console.error('Error updating planned modules:', error)
       toast({
