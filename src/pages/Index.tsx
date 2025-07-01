@@ -113,7 +113,7 @@ const Index = () => {
           <div className="flex items-center gap-3">
             <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-50">
                   <User className="h-4 w-4 mr-2" />
                   Profile
                 </Button>
@@ -130,13 +130,14 @@ const Index = () => {
                       value={profileName}
                       onChange={(e) => setProfileName(e.target.value)}
                       placeholder="Enter your full name"
+                      className="border-blue-300 focus:border-blue-500"
                     />
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={() => setProfileDialogOpen(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={handleUpdateProfile}>
+                    <Button onClick={handleUpdateProfile} className="bg-blue-600 hover:bg-blue-700">
                       Update
                     </Button>
                   </div>
@@ -144,7 +145,7 @@ const Index = () => {
               </DialogContent>
             </Dialog>
             
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
+            <Button variant="outline" size="sm" onClick={handleSignOut} className="border-blue-300 text-blue-700 hover:bg-blue-50">
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
             </Button>

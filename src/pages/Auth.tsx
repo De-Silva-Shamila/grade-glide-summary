@@ -56,25 +56,25 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md border-blue-200 shadow-xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <GraduationCap className="h-12 w-12 text-blue-600" />
           </div>
           <CardTitle className="text-2xl font-bold text-blue-900">GPA Calculator</CardTitle>
-          <CardDescription>Sign in to your account or create a new one</CardDescription>
+          <CardDescription className="text-blue-700">Sign in to your account or create a new one</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 bg-blue-100">
+              <TabsTrigger value="signin" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Sign In</TabsTrigger>
+              <TabsTrigger value="signup" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Sign Up</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
+                  <Label htmlFor="signin-email" className="text-blue-700">Email</Label>
                   <Input
                     id="signin-email"
                     type="email"
@@ -82,10 +82,11 @@ const Auth = () => {
                     onChange={(e) => setSignInData(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="Enter your email"
                     required
+                    className="border-blue-300 focus:border-blue-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
+                  <Label htmlFor="signin-password" className="text-blue-700">Password</Label>
                   <div className="relative">
                     <Input
                       id="signin-password"
@@ -94,19 +95,20 @@ const Auth = () => {
                       onChange={(e) => setSignInData(prev => ({ ...prev, password: e.target.value }))}
                       placeholder="Enter your password"
                       required
+                      className="border-blue-300 focus:border-blue-500"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-blue-50 text-blue-600"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
                   {isLoading ? "Signing In..." : "Sign In"}
                 </Button>
               </form>
@@ -115,7 +117,7 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
+                  <Label htmlFor="signup-name" className="text-blue-700">Full Name</Label>
                   <Input
                     id="signup-name"
                     type="text"
@@ -123,10 +125,11 @@ const Auth = () => {
                     onChange={(e) => setSignUpData(prev => ({ ...prev, fullName: e.target.value }))}
                     placeholder="Enter your full name"
                     required
+                    className="border-blue-300 focus:border-blue-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email" className="text-blue-700">Email</Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -134,10 +137,11 @@ const Auth = () => {
                     onChange={(e) => setSignUpData(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="Enter your email"
                     required
+                    className="border-blue-300 focus:border-blue-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password" className="text-blue-700">Password</Label>
                   <div className="relative">
                     <Input
                       id="signup-password"
@@ -147,19 +151,20 @@ const Auth = () => {
                       placeholder="Create a password"
                       required
                       minLength={6}
+                      className="border-blue-300 focus:border-blue-500"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-blue-50 text-blue-600"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
                   {isLoading ? "Creating Account..." : "Create Account"}
                 </Button>
               </form>
