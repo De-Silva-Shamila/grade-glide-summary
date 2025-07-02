@@ -47,27 +47,46 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
     credits: '',
     semester: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
+
+  console.log('PlannedModules rendered with modules:', plannedModules);
 
   const addModule = async () => {
     if (!newModule.name.trim() || !newModule.credits || !newModule.semester.trim()) return;
+    
+    setIsLoading(true);
+    try {
+      const module: PlannedModule = {
+        id: generateUUID(),
+        name: newModule.name.trim(),
+        credits: parseInt(newModule.credits),
+        semester: newModule.semester.trim(),
+      };
 
-    const module: PlannedModule = {
-      id: generateUUID(), // Use proper UUID generation
-      name: newModule.name.trim(),
-      credits: parseInt(newModule.credits),
-      semester: newModule.semester.trim(),
-    };
-
-    console.log('Adding new module with UUID:', module.id);
-    const updatedModules = [...plannedModules, module];
-    await onUpdatePlannedModules(updatedModules);
-    setNewModule({ name: '', credits: '', semester: '' });
+      console.log('Adding new module:', module);
+      const updatedModules = [...plannedModules, module];
+      await onUpdatePlannedModules(updatedModules);
+      setNewModule({ name: '', credits: '', semester: '' });
+      console.log('Module added successfully');
+    } catch (error) {
+      console.error('Error adding module:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const deleteModule = async (moduleId: string) => {
     console.log('Deleting module with ID:', moduleId);
-    const updatedModules = plannedModules.filter(module => module.id !== moduleId);
-    await onUpdatePlannedModules(updatedModules);
+    setIsLoading(true);
+    try {
+      const updatedModules = plannedModules.filter(module => module.id !== moduleId);
+      await onUpdatePlannedModules(updatedModules);
+      console.log('Module deleted successfully');
+    } catch (error) {
+      console.error('Error deleting module:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const startEditModule = (module: PlannedModule) => {
@@ -82,19 +101,27 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
   const saveEditModule = async (moduleId: string) => {
     if (!editValues.name.trim() || !editValues.credits || !editValues.semester.trim()) return;
 
-    console.log('Updating module with ID:', moduleId);
-    const updatedModules = plannedModules.map(module =>
-      module.id === moduleId 
-        ? { 
-            ...module, 
-            name: editValues.name.trim(),
-            credits: parseInt(editValues.credits),
-            semester: editValues.semester.trim()
-          } 
-        : module
-    );
-    await onUpdatePlannedModules(updatedModules);
-    setEditingModule(null);
+    setIsLoading(true);
+    try {
+      console.log('Updating module with ID:', moduleId);
+      const updatedModules = plannedModules.map(module =>
+        module.id === moduleId 
+          ? { 
+              ...module, 
+              name: editValues.name.trim(),
+              credits: parseInt(editValues.credits),
+              semester: editValues.semester.trim()
+            } 
+          : module
+      );
+      await onUpdatePlannedModules(updatedModules);
+      setEditingModule(null);
+      console.log('Module updated successfully');
+    } catch (error) {
+      console.error('Error updating module:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const cancelEdit = () => {
@@ -118,7 +145,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
       <CardHeader className="bg-blue-700 text-white">
         <CardTitle className="flex items-center gap-2">
           <BookOpen className="h-5 w-5" />
-          Planned Modules
+          Planned Modules ({plannedModules.length})
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">
@@ -133,6 +160,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                 value={newModule.name}
                 onChange={(e) => setNewModule({ ...newModule, name: e.target.value })}
                 className="bg-white border-blue-300 focus:border-blue-500 text-blue-900 placeholder:text-blue-400"
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -146,6 +174,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                 min="1"
                 max="10"
                 className="bg-white border-blue-300 focus:border-blue-500 text-blue-900 placeholder:text-blue-400"
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -156,16 +185,17 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                 value={newModule.semester}
                 onChange={(e) => setNewModule({ ...newModule, semester: e.target.value })}
                 className="bg-white border-blue-300 focus:border-blue-500 text-blue-900 placeholder:text-blue-400"
+                disabled={isLoading}
               />
             </div>
             <div className="flex items-end">
               <Button
                 onClick={addModule}
-                disabled={!newModule.name.trim() || !newModule.credits || !newModule.semester.trim()}
+                disabled={!newModule.name.trim() || !newModule.credits || !newModule.semester.trim() || isLoading}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white border-0"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add Module
+                {isLoading ? 'Adding...' : 'Add Module'}
               </Button>
             </div>
           </div>
@@ -173,12 +203,12 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
 
         {pendingModules.length > 0 && (
           <div className="mb-6">
-            <h4 className="font-medium text-blue-800 mb-3">Pending Modules</h4>
+            <h4 className="font-medium text-blue-800 mb-3">Pending Modules ({pendingModules.length})</h4>
             <div className="space-y-2">
               {pendingModules.map((module) => (
                 <div
                   key={module.id}
-                  className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200"
+                  className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200 shadow-sm"
                 >
                   {editingModule === module.id ? (
                     <>
@@ -188,6 +218,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                           onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
                           className="border-blue-300 focus:border-blue-500 bg-white text-blue-900"
                           placeholder="Module name"
+                          disabled={isLoading}
                         />
                         <Input
                           type="number"
@@ -196,19 +227,22 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                           className="border-blue-300 focus:border-blue-500 bg-white text-blue-900"
                           min="1"
                           max="10"
+                          disabled={isLoading}
                         />
                         <Input
                           value={editValues.semester}
                           onChange={(e) => setEditValues({ ...editValues, semester: e.target.value })}
                           className="border-blue-300 focus:border-blue-500 bg-white text-blue-900"
                           placeholder="Semester"
+                          disabled={isLoading}
                         />
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => saveEditModule(module.id)}
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 border-0"
+                        className="text-green-600 hover:text-green-800 hover:bg-green-100 border-0"
+                        disabled={isLoading}
                       >
                         <Save className="h-3 w-3" />
                       </Button>
@@ -216,7 +250,8 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={cancelEdit}
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 border-0"
+                        className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 border-0"
+                        disabled={isLoading}
                       >
                         <X className="h-3 w-3" />
                       </Button>
@@ -224,8 +259,8 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                   ) : (
                     <>
                       <div className="flex-1">
-                        <div className="font-medium text-blue-800">{module.name}</div>
-                        <div className="text-sm text-blue-600">
+                        <div className="font-medium text-blue-900">{module.name}</div>
+                        <div className="text-sm text-blue-700">
                           {module.credits} credits • {module.semester}
                         </div>
                       </div>
@@ -233,8 +268,9 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                         <Label htmlFor={`grade-${module.id}`} className="text-blue-700 font-medium text-xs">Grade</Label>
                         <Select
                           onValueChange={(grade) => updateModuleGrade(module.id, grade)}
+                          disabled={isLoading}
                         >
-                          <SelectTrigger id={`grade-${module.id}`} className="w-24 bg-blue-50 border-blue-300 text-blue-900 focus:border-blue-500">
+                          <SelectTrigger id={`grade-${module.id}`} className="w-24 bg-white border-blue-300 text-blue-900 focus:border-blue-500">
                             <SelectValue placeholder="Grade" />
                           </SelectTrigger>
                           <SelectContent className="bg-white border-blue-200 z-50">
@@ -251,6 +287,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                         size="sm"
                         onClick={() => startEditModule(module)}
                         className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 border-0"
+                        disabled={isLoading}
                       >
                         <Edit className="h-3 w-3" />
                       </Button>
@@ -258,7 +295,8 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteModule(module.id)}
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 border-0"
+                        className="text-red-600 hover:text-red-800 hover:bg-red-100 border-0"
+                        disabled={isLoading}
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>

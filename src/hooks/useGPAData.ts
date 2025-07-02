@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
@@ -104,7 +103,7 @@ export function useGPAData() {
 
       const { overallGPA, totalCredits } = calculateOverallGPA(updatedSemesters)
 
-      setGpaData({
+      const newGpaData = {
         semesters: updatedSemesters,
         overallGPA,
         totalCredits,
@@ -114,7 +113,10 @@ export function useGPAData() {
           credits: module.credits,
           semester: module.semester,
         })),
-      })
+      }
+
+      console.log('Setting GPA data:', newGpaData)
+      setGpaData(newGpaData)
     } catch (error: any) {
       console.error('Error fetching GPA data:', error)
       toast({
@@ -321,7 +323,7 @@ export function useGPAData() {
       console.log('Updating planned modules for user:', user.id)
       console.log('Modules to update:', modules)
       
-      // Delete existing planned modules for the user
+      // First, delete all existing planned modules for this user
       const { error: deleteError } = await supabase
         .from('planned_modules')
         .delete()
@@ -332,10 +334,10 @@ export function useGPAData() {
         throw deleteError
       }
 
-      // Insert new modules if any exist
+      // Then, insert all the new modules (if any)
       if (modules.length > 0) {
         const modulesToInsert = modules.map(module => ({
-          id: module.id, // Use the existing ID or generate new one
+          id: module.id,
           user_id: user.id,
           name: module.name,
           credits: module.credits,
@@ -344,17 +346,22 @@ export function useGPAData() {
 
         console.log('Inserting modules:', modulesToInsert)
 
-        const { error: insertError } = await supabase
+        const { error: insertError, data: insertedData } = await supabase
           .from('planned_modules')
           .insert(modulesToInsert)
+          .select()
 
         if (insertError) {
           console.error('Error inserting modules:', insertError)
           throw insertError
         }
+
+        console.log('Modules inserted successfully:', insertedData)
       }
 
+      // Refresh the data to ensure UI is updated
       await fetchData()
+      
       toast({
         title: "Modules Updated",
         description: "Planned modules have been updated successfully.",
@@ -424,7 +431,7 @@ export function useGPAData() {
       if (data.plannedModules && data.plannedModules.length > 0) {
         console.log('Importing planned modules:', data.plannedModules.length)
         const modulesToInsert = data.plannedModules.map((module: any) => ({
-          id: module.id || generateUUID(), // Generate UUID if not present
+          id: module.id || generateUUID(),
           user_id: user.id,
           name: module.name,
           credits: module.credits,
