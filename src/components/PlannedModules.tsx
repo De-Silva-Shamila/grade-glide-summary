@@ -22,6 +22,15 @@ interface PlannedModulesProps {
   onUpdatePlannedModules: (modules: PlannedModule[]) => void;
 }
 
+// Function to generate proper UUID
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
+
 const PlannedModules: React.FC<PlannedModulesProps> = ({ 
   onModuleComplete, 
   plannedModules, 
@@ -43,18 +52,20 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
     if (!newModule.name.trim() || !newModule.credits || !newModule.semester.trim()) return;
 
     const module: PlannedModule = {
-      id: Date.now().toString(),
+      id: generateUUID(), // Use proper UUID generation
       name: newModule.name.trim(),
       credits: parseInt(newModule.credits),
       semester: newModule.semester.trim(),
     };
 
+    console.log('Adding new module with UUID:', module.id);
     const updatedModules = [...plannedModules, module];
     await onUpdatePlannedModules(updatedModules);
     setNewModule({ name: '', credits: '', semester: '' });
   };
 
   const deleteModule = async (moduleId: string) => {
+    console.log('Deleting module with ID:', moduleId);
     const updatedModules = plannedModules.filter(module => module.id !== moduleId);
     await onUpdatePlannedModules(updatedModules);
   };
@@ -71,6 +82,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
   const saveEditModule = async (moduleId: string) => {
     if (!editValues.name.trim() || !editValues.credits || !editValues.semester.trim()) return;
 
+    console.log('Updating module with ID:', moduleId);
     const updatedModules = plannedModules.map(module =>
       module.id === moduleId 
         ? { 
@@ -91,6 +103,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
   };
 
   const updateModuleGrade = async (moduleId: string, grade: string) => {
+    console.log('Completing module with ID:', moduleId, 'and grade:', grade);
     const module = plannedModules.find(m => m.id === moduleId);
     if (module) {
       const completedModule = { ...module, grade };
