@@ -1,58 +1,20 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Target, Calculator, Save } from 'lucide-react';
+import { Target, Calculator } from 'lucide-react';
 import { GPAData } from '@/types/gpa';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
 
 interface GPAGoalTrackerProps {
   gpaData: GPAData;
 }
 
 const GPAGoalTracker: React.FC<GPAGoalTrackerProps> = ({ gpaData }) => {
-  const { user } = useAuth();
-  const { toast } = useToast();
   const [targetGPA, setTargetGPA] = useState('');
   const [remainingCredits, setRemainingCredits] = useState('');
   const [requiredGPA, setRequiredGPA] = useState<number | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  // Load saved goal on component mount
-  useEffect(() => {
-    const loadSavedGoal = async () => {
-      if (!user) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('gpa_goals')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error loading saved goal:', error);
-          return;
-        }
-
-        if (data) {
-          setTargetGPA(data.target_gpa.toString());
-          setRemainingCredits(data.remaining_credits.toString());
-          setRequiredGPA(parseFloat(data.required_gpa.toString()));
-        }
-      } catch (error) {
-        console.error('Error loading saved goal:', error);
-      }
-    };
-
-    loadSavedGoal();
-  }, [user]);
 
   const calculateRequiredGPA = () => {
     if (!targetGPA || !remainingCredits) return;
@@ -70,43 +32,11 @@ const GPAGoalTracker: React.FC<GPAGoalTrackerProps> = ({ gpaData }) => {
     setRequiredGPA(Math.round(required * 100) / 100);
   };
 
-  const saveGoal = async () => {
-    if (!user || !targetGPA || !remainingCredits || requiredGPA === null) return;
-
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('gpa_goals')
-        .insert({
-          user_id: user.id,
-          target_gpa: parseFloat(targetGPA),
-          remaining_credits: parseInt(remainingCredits),
-          required_gpa: requiredGPA,
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Goal Saved",
-        description: "Your GPA goal has been saved successfully.",
-      });
-    } catch (error: any) {
-      console.error('Error saving goal:', error);
-      toast({
-        title: "Save Failed",
-        description: error.message || "Failed to save your GPA goal",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const getRequiredGPAColor = (required: number) => {
-    if (required > 4.0) return 'text-red-600';
-    if (required > 3.5) return 'text-orange-600';
-    if (required > 3.0) return 'text-yellow-600';
-    return 'text-green-600';
+    if (required > 4.0) return 'text-blue-900';
+    if (required > 3.5) return 'text-blue-800';
+    if (required > 3.0) return 'text-blue-700';
+    return 'text-blue-600';
   };
 
   const getRequiredGPAMessage = (required: number) => {
@@ -156,25 +86,15 @@ const GPAGoalTracker: React.FC<GPAGoalTrackerProps> = ({ gpaData }) => {
               className="bg-white border-blue-300 focus:border-blue-500 text-blue-900"
             />
           </div>
-          <div className="flex items-end gap-2">
+          <div className="flex items-end">
             <Button
               onClick={calculateRequiredGPA}
               disabled={!targetGPA || !remainingCredits}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-0"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white border-0"
             >
               <Calculator className="h-4 w-4 mr-2" />
               Calculate
             </Button>
-            {requiredGPA !== null && (
-              <Button
-                onClick={saveGoal}
-                disabled={saving}
-                variant="outline"
-                className="border-blue-300 text-blue-700 hover:bg-blue-50"
-              >
-                <Save className="h-4 w-4" />
-              </Button>
-            )}
           </div>
         </div>
 

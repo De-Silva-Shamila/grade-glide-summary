@@ -1,52 +1,154 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Download, Upload, LogOut, User, Settings } from 'lucide-react';
+import { Plus, Download, Upload } from 'lucide-react';
 import SemesterCard from '@/components/SemesterCard';
 import OverallStats from '@/components/OverallStats';
 import GPAGoalTracker from '@/components/GPAGoalTracker';
 import PlannedModules from '@/components/PlannedModules';
-import { useAuth } from '@/hooks/useAuth';
-import { useGPAData } from '@/hooks/useGPAData';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Semester, GPAData, Course } from '@/types/gpa';
+import { calculateSemesterGPA, calculateOverallGPA } from '@/utils/gpaCalculations';
+
+interface PlannedModule {
+  id: string;
+  name: string;
+  credits: number;
+  semester: string;
+  grade?: string;
+}
+
+interface ExtendedGPAData extends GPAData {
+  plannedModules: PlannedModule[];
+}
 
 const Index = () => {
-  const navigate = useNavigate();
-  const { user, signOut, userProfile, updateProfile } = useAuth();
-  const { gpaData, loading, addSemester, updateSemester, deleteSemester, importData, updatePlannedModules } = useGPAData();
+  const [gpaData, setGpaData] = useState<ExtendedGPAData>({
+    semesters: [],
+    overallGPA: 0,
+    totalCredits: 0,
+    plannedModules: [],
+  });
   const [newSemesterName, setNewSemesterName] = useState('');
-  const [profileName, setProfileName] = useState('');
-  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      navigate('/auth');
+    // Load data from localStorage on component mount
+    const savedData = localStorage.getItem('gpaData');
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        setGpaData({
+          semesters: parsedData.semesters || [],
+          overallGPA: parsedData.overallGPA || 0,
+          totalCredits: parsedData.totalCredits || 0,
+          plannedModules: parsedData.plannedModules || [],
+        });
+      } catch (error) {
+        console.error('Error loading saved data:', error);
+      }
     }
-  }, [user, navigate]);
+  }, []);
 
   useEffect(() => {
-    setProfileName(userProfile?.full_name || '');
-  }, [userProfile]);
+    // Recalculate overall GPA whenever semesters change
+    const updatedSemesters = gpaData.semesters.map(semester => {
+      const { gpa, totalCredits } = calculateSemesterGPA(semester.courses);
+      return { ...semester, gpa, totalCredits };
+    });
 
-  if (!user) {
-    return null; // Will redirect to auth
-  }
+    const { overallGPA, totalCredits } = calculateOverallGPA(updatedSemesters);
 
-  const handleAddSemester = async () => {
+    const updatedGpaData = {
+      ...gpaData,
+      semesters: updatedSemesters,
+      overallGPA,
+      totalCredits,
+    };
+
+    setGpaData(updatedGpaData);
+    
+    // Save to localStorage whenever data changes
+    localStorage.setItem('gpaData', JSON.stringify(updatedGpaData));
+  }, [
+    gpaData.semesters.length, 
+    JSON.stringify(gpaData.semesters.map(s => s.courses))
+  ]);
+
+  const addSemester = () => {
     if (!newSemesterName.trim()) return;
-    await addSemester(newSemesterName.trim());
+
+    const newSemester: Semester = {
+      id: Date.now().toString(),
+      name: newSemesterName.trim(),
+      courses: [],
+      gpa: 0,
+      totalCredits: 0,
+    };
+
+    setGpaData(prev => ({
+      ...prev,
+      semesters: [...prev.semesters, newSemester],
+    }));
     setNewSemesterName('');
   };
 
-  const handleModuleComplete = async (completedModule: any) => {
-    console.log('Module completed:', completedModule);
-    // Remove the completed module from planned modules
-    const updatedModules = gpaData.plannedModules.filter(m => m.id !== completedModule.id);
-    await updatePlannedModules(updatedModules);
+  const updateSemester = (updatedSemester: Semester) => {
+    setGpaData(prev => ({
+      ...prev,
+      semesters: prev.semesters.map(semester =>
+        semester.id === updatedSemester.id ? updatedSemester : semester
+      ),
+    }));
+  };
+
+  const deleteSemester = (semesterId: string) => {
+    setGpaData(prev => ({
+      ...prev,
+      semesters: prev.semesters.filter(semester => semester.id !== semesterId),
+    }));
+  };
+
+  const updatePlannedModules = (modules: PlannedModule[]) => {
+    setGpaData(prev => ({
+      ...prev,
+      plannedModules: modules,
+    }));
+  };
+
+  const handleModuleComplete = (completedModule: any) => {
+    // Find or create the semester for this module
+    let targetSemester = gpaData.semesters.find(s => s.name === completedModule.semester);
+    
+    if (!targetSemester) {
+      // Create new semester if it doesn't exist
+      targetSemester = {
+        id: Date.now().toString(),
+        name: completedModule.semester,
+        courses: [],
+        gpa: 0,
+        totalCredits: 0,
+      };
+      setGpaData(prev => ({
+        ...prev,
+        semesters: [...prev.semesters, targetSemester!],
+      }));
+    }
+
+    // Add the completed module as a course
+    const course: Course = {
+      id: Date.now().toString(),
+      name: completedModule.name,
+      credits: completedModule.credits,
+      grade: completedModule.grade,
+    };
+
+    const updatedSemester = {
+      ...targetSemester,
+      courses: [...targetSemester.courses, course],
+    };
+
+    updateSemester(updatedSemester);
   };
 
   const downloadJSON = () => {
@@ -68,7 +170,12 @@ const Index = () => {
       reader.onload = (e) => {
         try {
           const jsonData = JSON.parse(e.target?.result as string);
-          importData(jsonData);
+          setGpaData({
+            semesters: jsonData.semesters || [],
+            overallGPA: jsonData.overallGPA || 0,
+            totalCredits: jsonData.totalCredits || 0,
+            plannedModules: jsonData.plannedModules || [],
+          });
         } catch (error) {
           console.error('Error parsing JSON file:', error);
           alert('Error parsing JSON file. Please check the file format.');
@@ -76,82 +183,20 @@ const Index = () => {
       };
       reader.readAsText(file);
     }
+    // Reset the input value to allow uploading the same file again
     event.target.value = '';
   };
-
-  const handleUpdateProfile = async () => {
-    if (profileName.trim()) {
-      await updateProfile(profileName.trim());
-      setProfileDialogOpen(false);
-    }
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/auth');
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-        <div className="text-blue-800 text-xl font-semibold">Loading your data...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div className="text-center flex-1">
-            <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4 drop-shadow-sm">
-              GPA Calculator
-            </h1>
-            <p className="text-xl text-blue-800 max-w-2xl mx-auto font-medium">
-              {userProfile?.full_name ? `Welcome back, ${userProfile.full_name}!` : 'Track your academic performance across semesters'}
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="border-blue-400 text-blue-800 hover:bg-blue-100 font-medium shadow-sm">
-                  <User className="h-4 w-4 mr-2" />
-                  Profile
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-white border-blue-200">
-                <DialogHeader>
-                  <DialogTitle className="text-blue-900">Update Profile</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="profile-name" className="text-blue-800 font-medium">Full Name</Label>
-                    <Input
-                      id="profile-name"
-                      value={profileName}
-                      onChange={(e) => setProfileName(e.target.value)}
-                      placeholder="Enter your full name"
-                      className="border-blue-300 focus:border-blue-500 text-blue-900"
-                    />
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setProfileDialogOpen(false)} className="border-blue-300 text-blue-700">
-                      Cancel
-                    </Button>
-                    <Button onClick={handleUpdateProfile} className="bg-blue-600 hover:bg-blue-700 text-white">
-                      Update
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-            
-            <Button variant="outline" size="sm" onClick={handleSignOut} className="border-blue-400 text-blue-800 hover:bg-blue-100 font-medium shadow-sm">
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4">
+            GPA Calculator
+          </h1>
+          <p className="text-xl text-blue-700 max-w-2xl mx-auto">
+            Track your academic performance across semesters and calculate your overall GPA
+          </p>
         </div>
 
         <div className="max-w-6xl mx-auto space-y-8">
@@ -168,16 +213,16 @@ const Index = () => {
 
           <div className="bg-white rounded-xl shadow-lg p-6 border border-blue-200">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-semibold text-blue-900">
+              <h3 className="text-2xl font-semibold text-blue-800">
                 Data Management
               </h3>
               <div className="flex gap-3">
                 <Button
                   onClick={downloadJSON}
-                  className="bg-blue-600 hover:bg-blue-700 text-white border-0 font-medium shadow-sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white border-0"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Export Data
+                  Save JSON
                 </Button>
                 <div className="relative">
                   <input
@@ -188,12 +233,12 @@ const Index = () => {
                     id="json-upload"
                   />
                   <Button
-                    className="bg-blue-600 hover:bg-blue-700 text-white border-0 font-medium shadow-sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-white border-0"
                     asChild
                   >
                     <label htmlFor="json-upload" className="cursor-pointer">
                       <Upload className="h-4 w-4 mr-2" />
-                      Import Data
+                      Load JSON
                     </label>
                   </Button>
                 </div>
@@ -202,26 +247,26 @@ const Index = () => {
           </div>
 
           <div className="bg-white rounded-xl shadow-lg p-6 border border-blue-200">
-            <h3 className="text-2xl font-semibold text-blue-900 mb-4">
+            <h3 className="text-2xl font-semibold text-blue-800 mb-4">
               Add New Semester
             </h3>
             <div className="flex gap-3">
               <div className="flex-1">
-                <Label htmlFor="semester-name" className="text-blue-800 font-medium">Semester Name</Label>
+                <Label htmlFor="semester-name" className="text-blue-700 font-medium">Semester Name</Label>
                 <Input
                   id="semester-name"
                   placeholder="Enter semester name (e.g., Fall 2024)"
                   value={newSemesterName}
                   onChange={(e) => setNewSemesterName(e.target.value)}
-                  className="border-blue-300 focus:border-blue-500 bg-blue-50 text-blue-900 placeholder:text-blue-500"
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddSemester()}
+                  className="border-blue-300 focus:border-blue-500 bg-blue-50 text-blue-900"
+                  onKeyPress={(e) => e.key === 'Enter' && addSemester()}
                 />
               </div>
               <div className="flex items-end">
                 <Button 
-                  onClick={handleAddSemester}
+                  onClick={addSemester}
                   disabled={!newSemesterName.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 text-white border-0 font-medium shadow-sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white border-0"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Semester
@@ -235,8 +280,8 @@ const Index = () => {
               <div className="text-center py-12 bg-white rounded-xl shadow-lg border border-blue-200">
                 <div className="text-blue-400 mb-4">
                   <div className="text-6xl mb-4">📚</div>
-                  <h3 className="text-xl font-medium text-blue-800">No semesters added yet</h3>
-                  <p className="text-blue-700">Add your first semester to get started</p>
+                  <h3 className="text-xl font-medium text-blue-700">No semesters added yet</h3>
+                  <p className="text-blue-600">Add your first semester to get started</p>
                 </div>
               </div>
             ) : (
