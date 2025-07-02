@@ -24,11 +24,11 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
   const [editingSemesterName, setEditingSemesterName] = useState(false);
   const [semesterNameValue, setSemesterNameValue] = useState(semester.name);
 
-  const addCourse = () => {
+  const addCourse = async () => {
     if (!newCourse.name.trim() || !newCourse.credits || !newCourse.grade) return;
 
     const course: Course = {
-      id: Date.now().toString(),
+      id: `course_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name: newCourse.name.trim(),
       credits: parseInt(newCourse.credits),
       grade: newCourse.grade,
@@ -39,7 +39,10 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
       courses: [...semester.courses, course],
     };
 
-    onUpdateSemester(updatedSemester);
+    console.log('Adding course:', course);
+    console.log('Updated semester:', updatedSemester);
+    
+    await onUpdateSemester(updatedSemester);
     setNewCourse({ name: '', credits: '', grade: '' });
   };
 
@@ -115,7 +118,7 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
               <Input
                 value={semesterNameValue}
                 onChange={(e) => setSemesterNameValue(e.target.value)}
-                className="flex-1 border-blue-300 focus:border-blue-500 bg-white text-blue-900"
+                className="flex-1 border-blue-300 focus:border-blue-500 bg-white text-slate-900"
                 placeholder="Semester name"
                 onKeyPress={(e) => e.key === 'Enter' && saveEditSemesterName()}
               />
@@ -123,7 +126,7 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={saveEditSemesterName}
-                className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
+                className="text-blue-700 hover:text-blue-900 hover:bg-blue-100 p-1"
               >
                 <Save className="h-4 w-4" />
               </Button>
@@ -131,21 +134,21 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={cancelEditSemesterName}
-                className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
+                className="text-blue-700 hover:text-blue-900 hover:bg-blue-100 p-1"
               >
                 <X className="h-4 w-4" />
               </Button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <CardTitle className="text-xl font-semibold text-blue-900">
+              <CardTitle className="text-xl font-semibold text-slate-900">
                 {semester.name}
               </CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={startEditSemesterName}
-                className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
+                className="text-blue-700 hover:text-blue-900 hover:bg-blue-100 p-1"
               >
                 <Edit className="h-4 w-4" />
               </Button>
@@ -153,10 +156,10 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
           )}
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-blue-700">
                 {semester.gpa.toFixed(2)}
               </div>
-              <div className="text-sm text-blue-700">
+              <div className="text-sm text-slate-700">
                 {semester.totalCredits} credits
               </div>
             </div>
@@ -164,7 +167,7 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
               variant="ghost"
               size="sm"
               onClick={() => onDeleteSemester(semester.id)}
-              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+              className="text-red-600 hover:text-red-800 hover:bg-red-50"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -175,26 +178,26 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
       <CardContent className="p-6">
         {semester.courses.length > 0 && (
           <div className="mb-6">
-            <h4 className="font-medium text-blue-800 mb-3">Courses</h4>
+            <h4 className="font-medium text-slate-800 mb-3">Courses</h4>
             <div className="space-y-2">
               {semester.courses.map((course) => (
                 <div
                   key={course.id}
-                  className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200"
+                  className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200"
                 >
                   {editingCourse === course.id ? (
                     <>
                       <Input
                         value={editValues.name}
                         onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
-                        className="flex-1 border-blue-300 focus:border-blue-500 bg-white text-blue-900"
+                        className="flex-1 border-slate-300 focus:border-blue-500 bg-white text-slate-900"
                         placeholder="Course name"
                       />
                       <Input
                         type="number"
                         value={editValues.credits}
                         onChange={(e) => setEditValues({ ...editValues, credits: e.target.value })}
-                        className="w-20 border-blue-300 focus:border-blue-500 bg-white text-blue-900"
+                        className="w-20 border-slate-300 focus:border-blue-500 bg-white text-slate-900"
                         min="1"
                         max="10"
                       />
@@ -202,12 +205,12 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
                         value={editValues.grade}
                         onValueChange={(value) => setEditValues({ ...editValues, grade: value })}
                       >
-                        <SelectTrigger className="w-24 bg-white border-blue-300 focus:border-blue-500 text-blue-900">
+                        <SelectTrigger className="w-24 bg-white border-slate-300 focus:border-blue-500 text-slate-900">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-white border-blue-200 z-50">
+                        <SelectContent className="bg-white border-slate-200 z-50">
                           {GRADE_OPTIONS.map((grade) => (
-                            <SelectItem key={grade} value={grade} className="hover:bg-blue-50 text-blue-900 focus:bg-blue-50 focus:text-blue-900">
+                            <SelectItem key={grade} value={grade} className="hover:bg-blue-50 text-slate-900 focus:bg-blue-50 focus:text-slate-900">
                               {grade}
                             </SelectItem>
                           ))}
@@ -217,7 +220,7 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => saveEditCourse(course.id)}
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
+                        className="text-green-600 hover:text-green-800 hover:bg-green-50 p-1"
                       >
                         <Save className="h-3 w-3" />
                       </Button>
@@ -225,25 +228,25 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={cancelEdit}
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50 p-1"
                       >
                         <X className="h-3 w-3" />
                       </Button>
                     </>
                   ) : (
                     <>
-                      <div className="flex-1 text-blue-900 font-medium">{course.name}</div>
-                      <div className="text-sm font-medium text-blue-700 min-w-[60px]">
+                      <div className="flex-1 text-slate-900 font-medium">{course.name}</div>
+                      <div className="text-sm font-medium text-slate-700 min-w-[60px]">
                         {course.credits} credits
                       </div>
-                      <div className="text-sm font-semibold text-blue-800 min-w-[40px]">
+                      <div className="text-sm font-semibold text-slate-800 min-w-[40px]">
                         {course.grade}
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => startEditCourse(course)}
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-1"
                       >
                         <Edit className="h-3 w-3" />
                       </Button>
@@ -251,7 +254,7 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteCourse(course.id)}
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1"
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50 p-1"
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
@@ -263,21 +266,21 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
           </div>
         )}
 
-        <div className="border-t border-blue-200 pt-4">
-          <h4 className="font-medium text-blue-800 mb-3">Add New Course</h4>
+        <div className="border-t border-slate-200 pt-4">
+          <h4 className="font-medium text-slate-800 mb-3">Add New Course</h4>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
-              <Label htmlFor="course-name" className="text-blue-700 font-medium">Course Name</Label>
+              <Label htmlFor="course-name" className="text-slate-700 font-medium">Course Name</Label>
               <Input
                 id="course-name"
                 placeholder="Enter course name"
                 value={newCourse.name}
                 onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
-                className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400 text-blue-900"
+                className="bg-white border-slate-300 focus:bg-white focus:border-blue-500 text-slate-900"
               />
             </div>
             <div>
-              <Label htmlFor="course-credits" className="text-blue-700 font-medium">Credits</Label>
+              <Label htmlFor="course-credits" className="text-slate-700 font-medium">Credits</Label>
               <Input
                 id="course-credits"
                 type="number"
@@ -286,21 +289,21 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
                 onChange={(e) => setNewCourse({ ...newCourse, credits: e.target.value })}
                 min="1"
                 max="10"
-                className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400 text-blue-900"
+                className="bg-white border-slate-300 focus:bg-white focus:border-blue-500 text-slate-900"
               />
             </div>
             <div>
-              <Label htmlFor="course-grade" className="text-blue-700 font-medium">Grade</Label>
+              <Label htmlFor="course-grade" className="text-slate-700 font-medium">Grade</Label>
               <Select
                 value={newCourse.grade}
                 onValueChange={(value) => setNewCourse({ ...newCourse, grade: value })}
               >
-                <SelectTrigger id="course-grade" className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400 text-blue-900">
+                <SelectTrigger id="course-grade" className="bg-white border-slate-300 focus:bg-white focus:border-blue-500 text-slate-900">
                   <SelectValue placeholder="Select grade" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-blue-200 z-50">
+                <SelectContent className="bg-white border-slate-200 z-50">
                   {GRADE_OPTIONS.map((grade) => (
-                    <SelectItem key={grade} value={grade} className="hover:bg-blue-50 text-blue-900 focus:bg-blue-50 focus:text-blue-900">
+                    <SelectItem key={grade} value={grade} className="hover:bg-blue-50 text-slate-900 focus:bg-blue-50 focus:text-slate-900">
                       {grade}
                     </SelectItem>
                   ))}

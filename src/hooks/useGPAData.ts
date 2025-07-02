@@ -16,7 +16,6 @@ interface ExtendedGPAData extends GPAData {
   plannedModules: PlannedModule[]
 }
 
-// Function to generate proper UUID
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0;
@@ -43,7 +42,6 @@ export function useGPAData() {
     try {
       console.log('Fetching GPA data for user:', user.id)
       
-      // Fetch semesters with courses
       const { data: semesters, error: semestersError } = await supabase
         .from('semesters')
         .select(`
@@ -66,7 +64,6 @@ export function useGPAData() {
         throw semestersError
       }
 
-      // Fetch planned modules
       const { data: plannedModules, error: modulesError } = await supabase
         .from('planned_modules')
         .select('*')
@@ -81,7 +78,6 @@ export function useGPAData() {
       console.log('Fetched semesters:', semesters)
       console.log('Fetched planned modules:', plannedModules)
 
-      // Transform data
       const transformedSemesters: Semester[] = (semesters || []).map(semester => ({
         id: semester.id,
         name: semester.name,
@@ -95,7 +91,6 @@ export function useGPAData() {
         totalCredits: semester.total_credits || 0,
       }))
 
-      // Recalculate GPAs
       const updatedSemesters = transformedSemesters.map(semester => {
         const { gpa, totalCredits } = calculateSemesterGPA(semester.courses)
         return { ...semester, gpa, totalCredits }
@@ -180,20 +175,77 @@ export function useGPAData() {
     if (!user) return
 
     try {
-      console.log('Updating semester:', updatedSemester.id)
-      // Update semester
+      console.log('Updating semester:', updatedSemester.id, updatedSemester)
+      
+      // Calculate GPA and credits from courses
+      const { gpa, totalCredits } = calculateSemesterGPA(updatedSemester.courses);
+      
+      // Update semester info
       const { error: semesterError } = await supabase
         .from('semesters')
         .update({
           name: updatedSemester.name,
-          gpa: updatedSemester.gpa,
-          total_credits: updatedSemester.totalCredits,
+          gpa: gpa,
+          total_credits: totalCredits,
         })
         .eq('id', updatedSemester.id)
 
-      if (semesterError) throw semesterError
+      if (semesterError) {
+        console.error('Error updating semester:', semesterError)
+        throw semesterError
+      }
+
+      // Get existing courses for this semester
+      const { data: existingCourses, error: fetchError } = await supabase
+        .from('courses')
+        .select('id')
+        .eq('semester_id', updatedSemester.id)
+
+      if (fetchError) {
+        console.error('Error fetching existing courses:', fetchError)
+        throw fetchError
+      }
+
+      const existingCourseIds = existingCourses?.map(c => c.id) || []
+      const newCourseIds = updatedSemester.courses.map(c => c.id)
+
+      // Delete courses that are no longer in the updated semester
+      const coursesToDelete = existingCourseIds.filter(id => !newCourseIds.includes(id))
+      if (coursesToDelete.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('courses')
+          .delete()
+          .in('id', coursesToDelete)
+
+        if (deleteError) {
+          console.error('Error deleting courses:', deleteError)
+          throw deleteError
+        }
+      }
+
+      // Upsert courses (insert new ones, update existing ones)
+      for (const course of updatedSemester.courses) {
+        const { error: courseError } = await supabase
+          .from('courses')
+          .upsert({
+            id: course.id,
+            semester_id: updatedSemester.id,
+            name: course.name,
+            credits: course.credits,
+            grade: course.grade,
+          })
+
+        if (courseError) {
+          console.error('Error upserting course:', courseError)
+          throw courseError
+        }
+      }
 
       await fetchData()
+      toast({
+        title: "Semester Updated",
+        description: "Semester has been updated successfully.",
+      })
     } catch (error: any) {
       console.error('Error updating semester:', error)
       toast({
@@ -323,7 +375,6 @@ export function useGPAData() {
       console.log('Updating planned modules for user:', user.id)
       console.log('Modules to update:', modules)
       
-      // First, delete all existing planned modules for this user
       const { error: deleteError } = await supabase
         .from('planned_modules')
         .delete()
@@ -334,7 +385,6 @@ export function useGPAData() {
         throw deleteError
       }
 
-      // Then, insert all the new modules (if any)
       if (modules.length > 0) {
         const modulesToInsert = modules.map(module => ({
           id: module.id,
@@ -359,7 +409,6 @@ export function useGPAData() {
         console.log('Modules inserted successfully:', insertedData)
       }
 
-      // Refresh the data to ensure UI is updated
       await fetchData()
       
       toast({
@@ -383,7 +432,6 @@ export function useGPAData() {
       setLoading(true)
       console.log('Importing data for user:', user.id)
       
-      // Clear existing data
       console.log('Clearing existing data...')
       const semesterIds = gpaData.semesters.map(s => s.id)
       if (semesterIds.length > 0) {
@@ -392,7 +440,6 @@ export function useGPAData() {
       await supabase.from('semesters').delete().eq('user_id', user.id)
       await supabase.from('planned_modules').delete().eq('user_id', user.id)
 
-      // Import semesters
       if (data.semesters && data.semesters.length > 0) {
         console.log('Importing semesters:', data.semesters.length)
         for (const semester of data.semesters) {
@@ -409,7 +456,6 @@ export function useGPAData() {
 
           if (semesterError) throw semesterError
 
-          // Import courses for this semester
           if (semester.courses && semester.courses.length > 0) {
             const coursesToInsert = semester.courses.map((course: any) => ({
               semester_id: newSemester.id,
@@ -427,7 +473,6 @@ export function useGPAData() {
         }
       }
 
-      // Import planned modules
       if (data.plannedModules && data.plannedModules.length > 0) {
         console.log('Importing planned modules:', data.plannedModules.length)
         const modulesToInsert = data.plannedModules.map((module: any) => ({
