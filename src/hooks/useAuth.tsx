@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast()
 
   useEffect(() => {
-    // Set up auth state listener
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email)
@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null)
         
         if (session?.user) {
-          // Fetch user profile
+          // Fetch user profile with a slight delay to avoid race conditions
           setTimeout(async () => {
             try {
               const { data: profile, error } = await supabase
@@ -44,13 +44,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               
               if (error) {
                 console.error('Error fetching profile:', error)
+                // If profile doesn't exist, create one
+                if (error.code === 'PGRST116') {
+                  const { error: insertError } = await supabase
+                    .from('profiles')
+                    .insert({
+                      id: session.user.id,
+                      username: session.user.email?.split('@')[0] || 'user',
+                      full_name: session.user.user_metadata?.full_name || ''
+                    })
+                  
+                  if (!insertError) {
+                    setUserProfile({
+                      username: session.user.email?.split('@')[0] || 'user',
+                      full_name: session.user.user_metadata?.full_name || ''
+                    })
+                  }
+                }
               } else {
                 setUserProfile(profile)
               }
             } catch (error) {
               console.error('Profile fetch error:', error)
             }
-          }, 0)
+          }, 100)
         } else {
           setUserProfile(null)
         }
@@ -63,7 +80,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
-      setLoading(false)
+      if (!session) {
+        setLoading(false)
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -76,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: fullName,
             username: email.split('@')[0]
@@ -94,10 +114,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       console.log('Sign up successful:', data)
-      toast({
-        title: "Account Created!",
-        description: "You can now sign in with your credentials.",
-      })
+      
+      // Check if user needs email confirmation
+      if (data.user && !data.session) {
+        toast({
+          title: "Account Created!",
+          description: "Please check your email to confirm your account before signing in.",
+        })
+      } else {
+        toast({
+          title: "Account Created!",
+          description: "You can now sign in with your credentials.",
+        })
+      }
       
       return { error: null }
     } catch (error: any) {
@@ -121,9 +150,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Sign in error:', error)
+        let errorMessage = error.message
+        
+        // Provide more user-friendly error messages
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.'
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Please check your email and click the confirmation link before signing in.'
+        }
+        
         toast({
           title: "Sign In Failed",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         })
         return { error }

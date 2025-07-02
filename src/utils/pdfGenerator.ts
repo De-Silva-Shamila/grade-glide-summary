@@ -11,146 +11,239 @@ interface ExtendedGPAData extends GPAData {
 export const generateGPAPDF = (data: ExtendedGPAData) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
   let yPosition = 20;
   
-  // Header
-  doc.setFillColor(37, 99, 235); // Blue color
-  doc.rect(0, 0, pageWidth, 30, 'F');
+  // Modern header with gradient-like effect
+  doc.setFillColor(30, 64, 175); // Blue-800
+  doc.rect(0, 0, pageWidth, 40, 'F');
   
+  doc.setFillColor(37, 99, 235); // Blue-600 - lighter overlay
+  doc.rect(0, 30, pageWidth, 10, 'F');
+  
+  // Title with better typography
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(24);
+  doc.setFontSize(28);
   doc.setFont('helvetica', 'bold');
   doc.text('ACADEMIC TRANSCRIPT', pageWidth / 2, 20, { align: 'center' });
   
-  yPosition = 50;
-  
-  // Student Information
-  doc.setTextColor(0, 0, 0);
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text('STUDENT INFORMATION', 20, yPosition);
-  
-  yPosition += 15;
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Student Name: ${data.studentName}`, 20, yPosition);
-  yPosition += 8;
-  doc.text(`Date Generated: ${new Date().toLocaleDateString()}`, 20, yPosition);
+  doc.text(`Generated on ${new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  })}`, pageWidth / 2, 30, { align: 'center' });
   
-  yPosition += 20;
+  yPosition = 60;
   
-  // Overall Performance Summary
+  // Student Information Card
+  doc.setFillColor(248, 250, 252); // Blue-50
+  doc.rect(15, yPosition - 5, pageWidth - 30, 35, 'F');
+  doc.setDrawColor(219, 234, 254); // Blue-200
+  doc.rect(15, yPosition - 5, pageWidth - 30, 35, 'S');
+  
+  doc.setTextColor(30, 64, 175); // Blue-800
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('OVERALL PERFORMANCE SUMMARY', 20, yPosition);
+  doc.text('STUDENT INFORMATION', 25, yPosition + 5);
   
   yPosition += 15;
-  doc.setFontSize(12);
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85); // Slate-600
+  doc.text(`Student Name: ${data.studentName}`, 25, yPosition);
+  yPosition += 7;
+  doc.text(`Total Semesters: ${data.semesters.length}`, 25, yPosition);
+  yPosition += 7;
+  doc.text(`Report Generated: ${new Date().toLocaleString()}`, 25, yPosition);
   
+  yPosition += 25;
+  
+  // Overall Performance Summary Card
   const classification = getAcademicClassification(data.overallGPA);
   
-  doc.text(`Overall GPA: ${data.overallGPA.toFixed(2)}`, 20, yPosition);
-  yPosition += 8;
-  doc.text(`Academic Classification: ${classification.name}`, 20, yPosition);
-  yPosition += 8;
-  doc.text(`Classification Description: ${classification.description}`, 20, yPosition);
-  yPosition += 8;
-  doc.text(`Total Credits Completed: ${data.totalCredits}`, 20, yPosition);
-  yPosition += 8;
-  doc.text(`Number of Semesters: ${data.semesters.length}`, 20, yPosition);
+  doc.setFillColor(239, 246, 255); // Blue-50
+  doc.rect(15, yPosition - 5, pageWidth - 30, 50, 'F');
+  doc.setDrawColor(147, 197, 253); // Blue-300
+  doc.rect(15, yPosition - 5, pageWidth - 30, 50, 'S');
   
-  yPosition += 20;
-  
-  // Academic Performance Standards
-  doc.setFontSize(14);
+  doc.setTextColor(30, 64, 175); // Blue-800
+  doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('ACADEMIC PERFORMANCE STANDARDS', 20, yPosition);
+  doc.text('OVERALL PERFORMANCE SUMMARY', 25, yPosition + 5);
   
   yPosition += 15;
-  doc.setFontSize(10);
+  doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
-  doc.text('First Class Honours: 3.70 - 4.00 GPA', 20, yPosition);
-  yPosition += 6;
-  doc.text('Second Class Upper: 3.30 - 3.69 GPA', 20, yPosition);
-  yPosition += 6;
-  doc.text('Second Class Lower: 3.00 - 3.29 GPA', 20, yPosition);
-  yPosition += 6;
-  doc.text('General Pass: 2.00 - 2.99 GPA', 20, yPosition);
-  yPosition += 6;
-  doc.text('Below Pass: Below 2.00 GPA', 20, yPosition);
+  doc.setTextColor(51, 65, 85); // Slate-600
   
-  yPosition += 20;
+  // Create a two-column layout for better visual appeal
+  const leftColumn = 25;
+  const rightColumn = pageWidth / 2 + 10;
+  
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Overall GPA: ${data.overallGPA.toFixed(2)}`, leftColumn, yPosition);
+  doc.text(`Total Credits: ${data.totalCredits}`, rightColumn, yPosition);
+  
+  yPosition += 8;
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Classification: ${classification.name}`, leftColumn, yPosition);
+  
+  // Add a colored badge for classification
+  const badgeWidth = 60;
+  const badgeX = rightColumn;
+  let badgeColor = [34, 197, 94]; // Green for good performance
+  
+  if (data.overallGPA < 2.0) badgeColor = [239, 68, 68]; // Red
+  else if (data.overallGPA < 3.0) badgeColor = [245, 158, 11]; // Orange
+  else if (data.overallGPA < 3.3) badgeColor = [59, 130, 246]; // Blue
+  
+  doc.setFillColor(badgeColor[0], badgeColor[1], badgeColor[2]);
+  doc.roundedRect(badgeX, yPosition - 5, badgeWidth, 8, 2, 2, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.text(classification.name.toUpperCase(), badgeX + badgeWidth/2, yPosition, { align: 'center' });
+  
+  yPosition += 10;
+  doc.setTextColor(100, 116, 139); // Slate-500
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`${classification.description}`, leftColumn, yPosition);
+  
+  yPosition += 25;
+  
+  // Academic Standards Reference
+  doc.setFillColor(241, 245, 249); // Slate-100
+  doc.rect(15, yPosition - 5, pageWidth - 30, 40, 'F');
+  doc.setDrawColor(203, 213, 225); // Slate-300
+  doc.rect(15, yPosition - 5, pageWidth - 30, 40, 'S');
+  
+  doc.setTextColor(51, 65, 85); // Slate-600
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('GRADING STANDARDS', 25, yPosition + 5);
+  
+  yPosition += 15;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  
+  const standards = [
+    'First Class Honours: 3.70 - 4.00 GPA',
+    'Second Class Upper: 3.30 - 3.69 GPA',
+    'Second Class Lower: 3.00 - 3.29 GPA',
+    'General Pass: 2.00 - 2.99 GPA',
+    'Below Pass: Below 2.00 GPA'
+  ];
+  
+  standards.forEach((standard, index) => {
+    const xPos = 25 + (index % 2) * (pageWidth / 2 - 20);
+    const yPos = yPosition + Math.floor(index / 2) * 6;
+    doc.text(`• ${standard}`, xPos, yPos);
+  });
+  
+  yPosition += 35;
   
   // Semester Details
   data.semesters.forEach((semester, semesterIndex) => {
-    if (yPosition > 250) {
+    if (yPosition > pageHeight - 80) {
       doc.addPage();
       yPosition = 20;
     }
     
+    // Semester header with modern styling
+    doc.setFillColor(37, 99, 235); // Blue-600
+    doc.rect(15, yPosition - 5, pageWidth - 30, 15, 'F');
+    
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${semester.name.toUpperCase()}`, 20, yPosition);
-    
-    yPosition += 10;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
+    doc.text(semester.name.toUpperCase(), 25, yPosition + 5);
     
     const semesterClassification = getAcademicClassification(semester.gpa);
-    doc.text(`Semester GPA: ${semester.gpa.toFixed(2)} (${semesterClassification.name})`, 20, yPosition);
-    yPosition += 6;
-    doc.text(`Credits: ${semester.totalCredits}`, 20, yPosition);
+    doc.setFontSize(10);
+    doc.text(`GPA: ${semester.gpa.toFixed(2)} | Credits: ${semester.totalCredits} | ${semesterClassification.name}`, 
+             pageWidth - 25, yPosition + 5, { align: 'right' });
+    
+    yPosition += 20;
+    
+    // Course table with better formatting
+    doc.setFillColor(248, 250, 252); // Blue-50
+    doc.rect(15, yPosition - 2, pageWidth - 30, 12, 'F');
+    
+    doc.setTextColor(30, 64, 175); // Blue-800
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Course Name', 25, yPosition + 5);
+    doc.text('Credits', 120, yPosition + 5);
+    doc.text('Grade', 145, yPosition + 5);
+    doc.text('Points', 170, yPosition + 5);
     
     yPosition += 15;
     
-    // Course table headers
-    doc.setFont('helvetica', 'bold');
-    doc.text('Course Name', 20, yPosition);
-    doc.text('Credits', 120, yPosition);
-    doc.text('Grade', 150, yPosition);
-    doc.text('Points', 170, yPosition);
-    
-    yPosition += 8;
-    doc.setFont('helvetica', 'normal');
-    
-    // Course details
-    semester.courses.forEach((course: Course) => {
-      if (yPosition > 270) {
+    // Course rows with alternating colors
+    semester.courses.forEach((course: Course, courseIndex) => {
+      if (yPosition > pageHeight - 20) {
         doc.addPage();
         yPosition = 20;
       }
       
+      // Alternating row colors
+      if (courseIndex % 2 === 0) {
+        doc.setFillColor(255, 255, 255);
+      } else {
+        doc.setFillColor(248, 250, 252); // Blue-50
+      }
+      doc.rect(15, yPosition - 3, pageWidth - 30, 10, 'F');
+      
       const gradePoints = data.gradePoints[course.grade] || 0;
       
-      doc.text(course.name, 20, yPosition);
-      doc.text(course.credits.toString(), 120, yPosition);
-      doc.text(course.grade, 150, yPosition);
-      doc.text((course.credits * gradePoints).toFixed(1), 170, yPosition);
+      doc.setTextColor(51, 65, 85); // Slate-600
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(course.name, 25, yPosition + 2);
+      doc.text(course.credits.toString(), 120, yPosition + 2);
       
-      yPosition += 6;
+      // Color-coded grades
+      let gradeColor = [51, 65, 85]; // Default slate
+      if (gradePoints >= 3.7) gradeColor = [34, 197, 94]; // Green
+      else if (gradePoints >= 3.0) gradeColor = [59, 130, 246]; // Blue
+      else if (gradePoints >= 2.0) gradeColor = [245, 158, 11]; // Orange
+      else gradeColor = [239, 68, 68]; // Red
+      
+      doc.setTextColor(gradeColor[0], gradeColor[1], gradeColor[2]);
+      doc.setFont('helvetica', 'bold');
+      doc.text(course.grade, 145, yPosition + 2);
+      
+      doc.setTextColor(51, 65, 85);
+      doc.setFont('helvetica', 'normal');
+      doc.text((course.credits * gradePoints).toFixed(1), 170, yPosition + 2);
+      
+      yPosition += 8;
     });
     
     yPosition += 15;
   });
   
-  // Footer
-  if (yPosition > 250) {
+  // Modern footer
+  if (yPosition > pageHeight - 40) {
     doc.addPage();
     yPosition = 20;
   }
   
-  yPosition = doc.internal.pageSize.height - 30;
-  doc.setFillColor(37, 99, 235);
-  doc.rect(0, yPosition - 10, pageWidth, 40, 'F');
+  const footerY = pageHeight - 25;
+  doc.setFillColor(30, 64, 175); // Blue-800
+  doc.rect(0, footerY - 10, pageWidth, 25, 'F');
   
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text('Generated by GPA Calculator', pageWidth / 2, yPosition, { align: 'center' });
-  doc.text(`${new Date().toLocaleString()}`, pageWidth / 2, yPosition + 8, { align: 'center' });
+  doc.text('Generated by GPA Calculator Pro', pageWidth / 2, footerY, { align: 'center' });
+  doc.setFontSize(8);
+  doc.text(`${new Date().toLocaleString()} | Confidential Academic Document`, pageWidth / 2, footerY + 6, { align: 'center' });
   
-  // Save the PDF
-  const fileName = `Academic_Transcript_${data.studentName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+  // Save with better filename
+  const fileName = `${data.studentName.replace(/\s+/g, '_')}_Academic_Transcript_${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(fileName);
 };

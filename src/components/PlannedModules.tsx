@@ -39,7 +39,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
     semester: ''
   });
 
-  const addModule = () => {
+  const addModule = async () => {
     if (!newModule.name.trim() || !newModule.credits || !newModule.semester.trim()) return;
 
     const module: PlannedModule = {
@@ -50,13 +50,13 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
     };
 
     const updatedModules = [...plannedModules, module];
-    onUpdatePlannedModules(updatedModules);
+    await onUpdatePlannedModules(updatedModules);
     setNewModule({ name: '', credits: '', semester: '' });
   };
 
-  const deleteModule = (moduleId: string) => {
+  const deleteModule = async (moduleId: string) => {
     const updatedModules = plannedModules.filter(module => module.id !== moduleId);
-    onUpdatePlannedModules(updatedModules);
+    await onUpdatePlannedModules(updatedModules);
   };
 
   const startEditModule = (module: PlannedModule) => {
@@ -68,7 +68,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
     });
   };
 
-  const saveEditModule = (moduleId: string) => {
+  const saveEditModule = async (moduleId: string) => {
     if (!editValues.name.trim() || !editValues.credits || !editValues.semester.trim()) return;
 
     const updatedModules = plannedModules.map(module =>
@@ -81,7 +81,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
           } 
         : module
     );
-    onUpdatePlannedModules(updatedModules);
+    await onUpdatePlannedModules(updatedModules);
     setEditingModule(null);
   };
 
@@ -90,13 +90,11 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
     setEditValues({ name: '', credits: '', semester: '' });
   };
 
-  const updateModuleGrade = (moduleId: string, grade: string) => {
+  const updateModuleGrade = async (moduleId: string, grade: string) => {
     const module = plannedModules.find(m => m.id === moduleId);
     if (module) {
       const completedModule = { ...module, grade };
       onModuleComplete(completedModule);
-      const updatedModules = plannedModules.filter(m => m.id !== moduleId);
-      onUpdatePlannedModules(updatedModules);
     }
   };
 
@@ -121,7 +119,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                 placeholder="Enter module name"
                 value={newModule.name}
                 onChange={(e) => setNewModule({ ...newModule, name: e.target.value })}
-                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900"
+                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900 placeholder:text-blue-400"
               />
             </div>
             <div>
@@ -134,7 +132,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                 onChange={(e) => setNewModule({ ...newModule, credits: e.target.value })}
                 min="1"
                 max="10"
-                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900"
+                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900 placeholder:text-blue-400"
               />
             </div>
             <div>
@@ -144,7 +142,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                 placeholder="e.g., Fall 2024"
                 value={newModule.semester}
                 onChange={(e) => setNewModule({ ...newModule, semester: e.target.value })}
-                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900"
+                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900 placeholder:text-blue-400"
               />
             </div>
             <div className="flex items-end">

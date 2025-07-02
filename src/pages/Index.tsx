@@ -94,7 +94,7 @@ const Index = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-        <div className="text-blue-600 text-xl">Loading your data...</div>
+        <div className="text-blue-800 text-xl font-semibold">Loading your data...</div>
       </div>
     );
   }
@@ -104,10 +104,10 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <div className="text-center flex-1">
-            <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4 drop-shadow-sm">
               GPA Calculator
             </h1>
-            <p className="text-xl text-blue-700 max-w-2xl mx-auto">
+            <p className="text-xl text-blue-800 max-w-2xl mx-auto font-medium">
               {userProfile?.full_name ? `Welcome back, ${userProfile.full_name}!` : 'Track your academic performance across semesters'}
             </p>
           </div>
@@ -115,31 +115,31 @@ const Index = () => {
           <div className="flex items-center gap-3">
             <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+                <Button variant="outline" size="sm" className="border-blue-400 text-blue-800 hover:bg-blue-100 font-medium shadow-sm">
                   <User className="h-4 w-4 mr-2" />
                   Profile
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="bg-white border-blue-200">
                 <DialogHeader>
-                  <DialogTitle>Update Profile</DialogTitle>
+                  <DialogTitle className="text-blue-900">Update Profile</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="profile-name">Full Name</Label>
+                    <Label htmlFor="profile-name" className="text-blue-800 font-medium">Full Name</Label>
                     <Input
                       id="profile-name"
                       value={profileName}
                       onChange={(e) => setProfileName(e.target.value)}
                       placeholder="Enter your full name"
-                      className="border-blue-300 focus:border-blue-500"
+                      className="border-blue-300 focus:border-blue-500 text-blue-900"
                     />
                   </div>
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setProfileDialogOpen(false)}>
+                    <Button variant="outline" onClick={() => setProfileDialogOpen(false)} className="border-blue-300 text-blue-700">
                       Cancel
                     </Button>
-                    <Button onClick={handleUpdateProfile} className="bg-blue-600 hover:bg-blue-700">
+                    <Button onClick={handleUpdateProfile} className="bg-blue-600 hover:bg-blue-700 text-white">
                       Update
                     </Button>
                   </div>
@@ -147,7 +147,7 @@ const Index = () => {
               </DialogContent>
             </Dialog>
             
-            <Button variant="outline" size="sm" onClick={handleSignOut} className="border-blue-300 text-blue-700 hover:bg-blue-50">
+            <Button variant="outline" size="sm" onClick={handleSignOut} className="border-blue-400 text-blue-800 hover:bg-blue-100 font-medium shadow-sm">
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
             </Button>
@@ -168,13 +168,13 @@ const Index = () => {
 
           <div className="bg-white rounded-xl shadow-lg p-6 border border-blue-200">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-semibold text-blue-800">
+              <h3 className="text-2xl font-semibold text-blue-900">
                 Data Management
               </h3>
               <div className="flex gap-3">
                 <Button
                   onClick={downloadJSON}
-                  className="bg-blue-600 hover:bg-blue-700 text-white border-0"
+                  className="bg-blue-600 hover:bg-blue-700 text-white border-0 font-medium shadow-sm"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Export Data
@@ -188,7 +188,7 @@ const Index = () => {
                     id="json-upload"
                   />
                   <Button
-                    className="bg-blue-600 hover:bg-blue-700 text-white border-0"
+                    className="bg-blue-600 hover:bg-blue-700 text-white border-0 font-medium shadow-sm"
                     asChild
                   >
                     <label htmlFor="json-upload" className="cursor-pointer">
@@ -202,18 +202,18 @@ const Index = () => {
           </div>
 
           <div className="bg-white rounded-xl shadow-lg p-6 border border-blue-200">
-            <h3 className="text-2xl font-semibold text-blue-800 mb-4">
+            <h3 className="text-2xl font-semibold text-blue-900 mb-4">
               Add New Semester
             </h3>
             <div className="flex gap-3">
               <div className="flex-1">
-                <Label htmlFor="semester-name" className="text-blue-700 font-medium">Semester Name</Label>
+                <Label htmlFor="semester-name" className="text-blue-800 font-medium">Semester Name</Label>
                 <Input
                   id="semester-name"
                   placeholder="Enter semester name (e.g., Fall 2024)"
                   value={newSemesterName}
                   onChange={(e) => setNewSemesterName(e.target.value)}
-                  className="border-blue-300 focus:border-blue-500 bg-blue-50 text-blue-900"
+                  className="border-blue-300 focus:border-blue-500 bg-blue-50 text-blue-900 placeholder:text-blue-500"
                   onKeyPress={(e) => e.key === 'Enter' && handleAddSemester()}
                 />
               </div>
@@ -221,7 +221,7 @@ const Index = () => {
                 <Button 
                   onClick={handleAddSemester}
                   disabled={!newSemesterName.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 text-white border-0"
+                  className="bg-blue-600 hover:bg-blue-700 text-white border-0 font-medium shadow-sm"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Semester
@@ -235,8 +235,8 @@ const Index = () => {
               <div className="text-center py-12 bg-white rounded-xl shadow-lg border border-blue-200">
                 <div className="text-blue-400 mb-4">
                   <div className="text-6xl mb-4">📚</div>
-                  <h3 className="text-xl font-medium text-blue-700">No semesters added yet</h3>
-                  <p className="text-blue-600">Add your first semester to get started</p>
+                  <h3 className="text-xl font-medium text-blue-800">No semesters added yet</h3>
+                  <p className="text-blue-700">Add your first semester to get started</p>
                 </div>
               </div>
             ) : (
