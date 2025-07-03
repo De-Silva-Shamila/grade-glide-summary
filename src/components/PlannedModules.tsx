@@ -121,7 +121,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                 placeholder="Enter module name"
                 value={newModule.name}
                 onChange={(e) => setNewModule({ ...newModule, name: e.target.value })}
-                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900"
+                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900 placeholder:text-blue-500"
               />
             </div>
             <div>
@@ -134,7 +134,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                 onChange={(e) => setNewModule({ ...newModule, credits: e.target.value })}
                 min="1"
                 max="10"
-                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900"
+                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900 placeholder:text-blue-500"
               />
             </div>
             <div>
@@ -144,7 +144,7 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                 placeholder="e.g., Fall 2024"
                 value={newModule.semester}
                 onChange={(e) => setNewModule({ ...newModule, semester: e.target.value })}
-                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900"
+                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900 placeholder:text-blue-500"
               />
             </div>
             <div className="flex items-end">
@@ -175,21 +175,21 @@ const PlannedModules: React.FC<PlannedModulesProps> = ({
                         <Input
                           value={editValues.name}
                           onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
-                          className="border-blue-300 focus:border-blue-500 bg-white text-blue-900"
+                          className="border-blue-300 focus:border-blue-500 bg-white text-blue-900 placeholder:text-blue-500"
                           placeholder="Module name"
                         />
                         <Input
                           type="number"
                           value={editValues.credits}
                           onChange={(e) => setEditValues({ ...editValues, credits: e.target.value })}
-                          className="border-blue-300 focus:border-blue-500 bg-white text-blue-900"
+                          className="border-blue-300 focus:border-blue-500 bg-white text-blue-900 placeholder:text-blue-500"
                           min="1"
                           max="10"
                         />
                         <Input
                           value={editValues.semester}
                           onChange={(e) => setEditValues({ ...editValues, semester: e.target.value })}
-                          className="border-blue-300 focus:border-blue-500 bg-white text-blue-900"
+                          className="border-blue-300 focus:border-blue-500 bg-white text-blue-900 placeholder:text-blue-500"
                           placeholder="Semester"
                         />
                       </div>

@@ -184,10 +184,10 @@ const Index = () => {
                 <Label htmlFor="semester-name" className="text-blue-700 font-medium">Semester Name</Label>
                 <Input
                   id="semester-name"
-                  placeholder="Enter semester name (e.g., Fall 2024)"
+                  placeholder="Enter semester name"
                   value={newSemesterName}
                   onChange={(e) => setNewSemesterName(e.target.value)}
-                  className="border-blue-300 focus:border-blue-500 bg-blue-50 text-blue-900"
+                  className="border-blue-300 focus:border-blue-500 bg-blue-50 text-blue-900 placeholder:text-blue-500"
                   onKeyPress={(e) => e.key === 'Enter' && addSemester()}
                 />
               </div>
