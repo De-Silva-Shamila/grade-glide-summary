@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -273,7 +274,7 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
                 placeholder="Enter course name"
                 value={newCourse.name}
                 onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
-                className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400 text-blue-900"
+                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900 placeholder:text-blue-500"
               />
             </div>
             <div>
@@ -286,7 +287,7 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
                 onChange={(e) => setNewCourse({ ...newCourse, credits: e.target.value })}
                 min="1"
                 max="10"
-                className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400 text-blue-900"
+                className="bg-white border-blue-300 focus:border-blue-500 text-blue-900 placeholder:text-blue-500"
               />
             </div>
             <div>
@@ -295,7 +296,7 @@ const SemesterCard: React.FC<SemesterCardProps> = ({
                 value={newCourse.grade}
                 onValueChange={(value) => setNewCourse({ ...newCourse, grade: value })}
               >
-                <SelectTrigger id="course-grade" className="bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-400 text-blue-900">
+                <SelectTrigger id="course-grade" className="bg-white border-blue-300 focus:border-blue-500 text-blue-900">
                   <SelectValue placeholder="Select grade" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-blue-200 z-50">
