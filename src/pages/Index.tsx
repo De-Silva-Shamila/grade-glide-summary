@@ -187,7 +187,7 @@ const Index = () => {
                   placeholder="Enter semester name"
                   value={newSemesterName}
                   onChange={(e) => setNewSemesterName(e.target.value)}
-                  className="border-blue-300 focus:border-blue-500 bg-blue-50 text-blue-900 placeholder:text-blue-500"
+                  className="border-blue-300 focus:border-blue-500 bg-blue-50 text-blue-900 placeholder:text-blue-300"
                   onKeyPress={(e) => e.key === 'Enter' && addSemester()}
                 />
               </div>
