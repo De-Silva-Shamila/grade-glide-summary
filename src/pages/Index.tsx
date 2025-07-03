@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus } from 'lucide-react';
+import { Plus, Download, Upload } from 'lucide-react';
 import SemesterCard from '@/components/SemesterCard';
 import OverallStats from '@/components/OverallStats';
 import GPAGoalTracker from '@/components/GPAGoalTracker';
@@ -151,6 +151,42 @@ const Index = () => {
     updateSemester(updatedSemester);
   };
 
+  const downloadJSON = () => {
+    const dataStr = JSON.stringify(gpaData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `gpa_data_${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
+  const uploadJSON = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const jsonData = JSON.parse(e.target?.result as string);
+          setGpaData({
+            semesters: jsonData.semesters || [],
+            overallGPA: jsonData.overallGPA || 0,
+            totalCredits: jsonData.totalCredits || 0,
+            plannedModules: jsonData.plannedModules || [],
+          });
+        } catch (error) {
+          console.error('Error parsing JSON file:', error);
+          alert('Error parsing JSON file. Please check the file format.');
+        }
+      };
+      reader.readAsText(file);
+    }
+    // Reset the input value to allow uploading the same file again
+    event.target.value = '';
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
       <div className="container mx-auto px-4 py-8">
@@ -176,6 +212,41 @@ const Index = () => {
           </div>
 
           <div className="bg-white rounded-xl shadow-lg p-6 border border-blue-200">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-2xl font-semibold text-blue-800">
+                Data Management
+              </h3>
+              <div className="flex gap-3">
+                <Button
+                  onClick={downloadJSON}
+                  className="bg-blue-600 hover:bg-blue-700 text-white border-0"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Save JSON
+                </Button>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={uploadJSON}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    id="json-upload"
+                  />
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-700 text-white border-0"
+                    asChild
+                  >
+                    <label htmlFor="json-upload" className="cursor-pointer">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Load JSON
+                    </label>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-blue-200">
             <h3 className="text-2xl font-semibold text-blue-800 mb-4">
               Add New Semester
             </h3>
@@ -184,10 +255,10 @@ const Index = () => {
                 <Label htmlFor="semester-name" className="text-blue-700 font-medium">Semester Name</Label>
                 <Input
                   id="semester-name"
-                  placeholder="Enter semester name"
+                  placeholder="Enter semester name (e.g., Fall 2024)"
                   value={newSemesterName}
                   onChange={(e) => setNewSemesterName(e.target.value)}
-                  className="border-blue-300 focus:border-blue-500 bg-blue-50 text-blue-900 placeholder:text-blue-300"
+                  className="border-blue-300 focus:border-blue-500 bg-blue-50 text-blue-900"
                   onKeyPress={(e) => e.key === 'Enter' && addSemester()}
                 />
               </div>
