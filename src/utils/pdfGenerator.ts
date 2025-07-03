@@ -78,10 +78,15 @@ export const generateGPAPDF = (gpaData: any) => {
       
       // Truncate course name if too long
       const courseName = course.name.length > 25 ? course.name.substring(0, 25) + '...' : course.name;
+      const gradePoints = gpaData.gradePoints || {
+        'A+': 4.0, 'A': 4.0, 'A-': 3.7, 'B+': 3.3, 'B': 3.0, 'B-': 2.7,
+        'C+': 2.3, 'C': 2.0, 'C-': 1.7, 'D+': 1.3, 'D': 1.0, 'F': 0.0
+      };
+      
       doc.text(courseName, 20, yPosition);
       doc.text(course.credits.toString(), 120, yPosition);
       doc.text(course.grade, 150, yPosition);
-      doc.text((course.credits * (gpaData.gradePoints[course.grade] || 0)).toFixed(1), 170, yPosition);
+      doc.text((course.credits * (gradePoints[course.grade] || 0)).toFixed(1), 170, yPosition);
       
       yPosition += 12;
     });
